@@ -104,9 +104,10 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         for i in 0..<self.collectionViewArray.count{
             if collectionView == self.collectionViewArray[i]{
-                let imageController = storyboard?.instantiateViewController(withIdentifier: "ImageViewer")
+                let imageController = storyboard?.instantiateViewController(withIdentifier: "ImageViewer") as! PhotoViewController?
                 let imageView = imageController?.view.viewWithTag(3) as! UIImageView
                 imageView.image = imageArray[i][indexPath.row]
+                imageController?.setImageArray(images: imageArray[i])
                 self.navigationController?.pushViewController(imageController!, animated: true)
             }
         }
