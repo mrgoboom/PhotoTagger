@@ -7,20 +7,70 @@
 //
 
 import UIKit
+import Photos
 
-class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDelegate {
+class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDelegate, UICollectionViewDataSource, UICollectionViewDelegate {
     
-    var imageArray: [UIImage]?
+    var activeImageArray = [UIImage]()
     var activeImage: UIImage?
     var activeSelector: UIView?
     var rating = 0
     var colour = ""
     let defaultKeywordText = "Type comma-separated keywords here"
     var textViewText = ""
+    var imageArray = [[UIImage]]()
+    var momentArray = [PHAssetCollection]()
+    var collectionViewArray = [UICollectionView]()
         
     override func viewDidLoad() {
         super.viewDidLoad()
-        let imageView = self.view.viewWithTag(3) as! UIImageView
+        
+        
+        let myStackView = self.view.viewWithTag(1) as! UIStackView
+        grabMoments()
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM dd, YYYY"
+        var lastLabel = ""
+        for index in 0..<self.momentArray.count{
+            let moment = momentArray[index]
+            grabPhotos(moment: moment)
+            let newLabel = formatter.string(from: moment.startDate!)
+            if newLabel != lastLabel{
+                lastLabel = newLabel
+                let label = UILabel()
+                label.text = newLabel
+                label.textAlignment = NSTextAlignment.left
+                label.translatesAutoresizingMaskIntoConstraints = false
+                myStackView.addArrangedSubview(label)
+                
+                let layout = UICollectionViewFlowLayout()
+                let width = 100 as CGFloat
+                let height = 150 as CGFloat
+                layout.itemSize = CGSize(width: width, height: height)
+                let newCollectionView = UICollectionView(frame: myStackView.bounds, collectionViewLayout: layout)
+                newCollectionView.delegate = self
+                newCollectionView.dataSource = self
+                newCollectionView.register(PhotoCell.self, forCellWithReuseIdentifier: String(self.collectionViewArray.count))
+                newCollectionView.backgroundColor = UIColor.white
+                myStackView.addArrangedSubview(newCollectionView)
+                
+                newCollectionView.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    newCollectionView.heightAnchor.constraint(equalToConstant: height
+                    )
+                    ])
+                newCollectionView.reloadData()
+                
+                self.collectionViewArray.append(newCollectionView)
+            }
+            //print(myStackView.arrangedSubviews)
+            //print()
+        }
+        
+        
+        
+        let imageView = self.view.viewWithTag(13) as! UIImageView
         self.activeImage = imageView.image
         
         self.rating = 0
@@ -29,7 +79,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         self.colour = "empty"
         self.pickColour(colour: "empty")
         
-        applyPlaceHolder(self.view.viewWithTag(4) as! UITextView)
+        applyPlaceHolder(self.view.viewWithTag(14) as! UITextView)
         
         createCopyrightAccessoryView(textField: copyrightField)
         
@@ -45,6 +95,137 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         super.didReceiveMemoryWarning()
     }
     
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        var count = 0
+        
+        for i in 0..<self.collectionViewArray.count{
+            if collectionView == self.collectionViewArray[i]{
+                count = imageArray[i].count
+                //print(count, " items in collectionview ", i)
+                //print()
+            }
+        }
+        return count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        var cell = UICollectionViewCell()
+        
+        for i in 0..<self.collectionViewArray.count{
+            if collectionView == self.collectionViewArray[i]{
+                cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(i), for: indexPath)
+                if firstIndex(array: self.activeImageArray, item: self.imageArray[i][indexPath.row]) != nil{
+                    cell.backgroundColor = .lightGray
+                }else{
+                    cell.backgroundColor = nil
+                }
+                
+                let imageView = cell.viewWithTag(1) as! UIImageView
+                imageView.image = imageArray[i][indexPath.row]
+                
+                let height = collectionView.collectionViewLayout.collectionViewContentSize.height
+                //print("height of collection view ", i, " is ", height)
+                let oldConstraint = collectionView.constraints[0]
+                NSLayoutConstraint.deactivate([oldConstraint])
+                NSLayoutConstraint.activate([
+                    collectionView.heightAnchor.constraint(equalToConstant: height)
+                    ])
+                self.view.setNeedsLayout()
+                break
+            }
+        }
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        for i in 0..<self.collectionViewArray.count{
+            if collectionView == self.collectionViewArray[i]{
+                let index = firstIndex(array: self.activeImageArray, item: imageArray[i][indexPath.row])
+                if index != nil{
+                    self.activeImageArray.remove(at: index!)
+                    print("Removing from active array")
+                }else{
+                    self.activeImageArray.append(imageArray[i][indexPath.row])
+                    print("Adding to active array")
+                }
+                collectionView.reloadData()
+                /*let imageView = self.view.viewWithTag(13) as! UIImageView
+                imageView.image = imageArray[i][indexPath.row]
+                self.setImageArray(images: imageArray[i])
+                self.view.bringSubview(toFront: imageView)
+                imageView.isHidden = false*/
+            }
+        }
+    }
+    
+    func firstIndex<T: Equatable>(array: [T], item: T) -> Int?{
+        for (index, value) in array.enumerated() {
+            if value == item {
+                return index
+            }
+        }
+        return nil
+    }
+    
+    func grabMoments(){
+        let fetchOptions=PHFetchOptions()
+        fetchOptions.sortDescriptors=[NSSortDescriptor(key:"startDate", ascending: false)]
+        
+        let fetchResult = PHAssetCollection.fetchAssetCollections(with: PHAssetCollectionType.moment, subtype: PHAssetCollectionSubtype.any, options: fetchOptions)
+        for i in 0..<fetchResult.count {
+            let resObj = fetchResult.object(at: i)
+            print(resObj.startDate!)
+            self.momentArray.append(resObj)
+        }
+    }
+    
+    func grabPhotos(moment: PHAssetCollection) {
+        let imgManager=PHImageManager.default()
+        
+        let requestOptions=PHImageRequestOptions()
+        requestOptions.isSynchronous=true
+        requestOptions.deliveryMode = .highQualityFormat
+        
+        let fetchOptions=PHFetchOptions()
+        fetchOptions.sortDescriptors=[NSSortDescriptor(key:"creationDate", ascending: false)]
+        
+        let fetchResult: PHFetchResult = PHAsset.fetchAssets(in: moment, options: fetchOptions)
+        print(fetchResult)
+        if fetchResult.count > 0 {
+            for i in 0..<fetchResult.count{
+                imgManager.requestImage(for: fetchResult.object(at: i) as PHAsset, targetSize: PHImageManagerMaximumSize,contentMode: .aspectFit, options: requestOptions, resultHandler: { (image, error) in
+                    self.addImage(image: image!, moment: moment)
+                })
+            }
+        }
+    }
+    
+    func addImage(image: UIImage, moment: PHAssetCollection){
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM dd, YYYY"
+        let momentDate = formatter.string(from: moment.startDate!)
+        var index = 0
+        var lastMoment = ""
+        for m in self.momentArray{
+            let thisMoment = formatter.string(from: m.startDate!)
+            if momentDate == thisMoment{
+                break
+            }else if thisMoment != lastMoment{
+                index += 1
+                lastMoment = thisMoment
+            }
+        }
+        if index < imageArray.count{
+            self.imageArray[index].append(image)
+        }else{
+            var newArray = [UIImage]()
+            newArray.append(image)
+            self.imageArray.append(newArray)
+        }
+    }
+    
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         
@@ -52,10 +233,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         if(touch?.view != activeSelector){
             self.hideSelector()
         }
-    }
-    
-    func setImageArray(images: [UIImage]){
-        self.imageArray = images
     }
   
     func createCopyrightAccessoryView(textField: UITextField){
@@ -106,11 +283,11 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     }
     
     func hideSelector(){
-        if self.activeSelector == self.view.viewWithTag(4){
+        if self.activeSelector == self.view.viewWithTag(14){
             let keyboardView = self.activeSelector
             keyboardView?.endEditing(true)
         }
-        if self.activeSelector == self.view.viewWithTag(5){
+        if self.activeSelector == self.view.viewWithTag(15){
             copyrightField.endEditing(true)
         }
         self.activeSelector?.isHidden = true
@@ -125,7 +302,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
             newStars = 0
         }
         self.rating = newStars
-        let starView = self.view.viewWithTag(1)
+        let starView = self.view.viewWithTag(11)
         var i = 1
         while i <= newStars {
             let button = starView?.viewWithTag(100+i) as! UIButton
@@ -139,7 +316,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         }
     }
     @IBAction func starButtonPressed(_ sender: UIButton) {
-        let starButtonSelectors = self.view.viewWithTag(1)
+        let starButtonSelectors = self.view.viewWithTag(11)
         if starButtonSelectors!.isHidden{
             self.hideSelector()
             starButtonSelectors!.isHidden = false
@@ -170,7 +347,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     
     
     @IBAction func openColourPicker(_ sender: UIButton) {
-        let colourButtons = self.view.viewWithTag(2)
+        let colourButtons = self.view.viewWithTag(12)
         if colourButtons!.isHidden{
             self.hideSelector()
             colourButtons!.isHidden = false
@@ -220,7 +397,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     
     
     @IBAction func showKeywordField(_ sender: UIButton) {
-        let keywordField = self.view.viewWithTag(4)
+        let keywordField = self.view.viewWithTag(14)
         if keywordField!.isHidden{
             self.hideSelector()
             keywordField!.isHidden = false
@@ -243,7 +420,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         }
     }
     func textViewDidBeginEditing(_ textView: UITextView) {
-        if textView == self.view.viewWithTag(4) && textView.text == self.defaultKeywordText{
+        if textView == self.view.viewWithTag(14) && textView.text == self.defaultKeywordText{
             moveCursortoStart(textView)
         }
     }
@@ -268,7 +445,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     
     
     @objc func showCopyRightField(){
-        let copyRightStack = self.view.viewWithTag(5)!
+        let copyRightStack = self.view.viewWithTag(15)!
         if copyRightStack.isHidden{
             self.hideSelector()
             copyRightStack.isHidden = false
@@ -302,4 +479,40 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     
     @IBOutlet weak var copyrightButton: UIButton!
     @IBOutlet weak var copyrightField: UITextField!
+}
+
+class PhotoCell: UICollectionViewCell {
+    var imageView = UIImageView()
+    var bottomView = UIView()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        
+        self.imageView.contentMode = .scaleAspectFit
+        self.imageView.clipsToBounds = true
+        self.imageView.tag = 1
+        
+        self.addSubview(self.imageView)
+        self.addSubview(self.bottomView)
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        self.imageView.translatesAutoresizingMaskIntoConstraints = false
+        self.bottomView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            self.imageView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            self.imageView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            self.imageView.topAnchor.constraint(equalTo: self.topAnchor),
+            self.imageView.bottomAnchor.constraint(equalTo: self.bottomView.topAnchor),
+            self.bottomView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            self.bottomView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            self.bottomView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+            self.bottomView.heightAnchor.constraint(equalToConstant: 50)
+        ])
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
