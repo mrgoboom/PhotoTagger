@@ -304,29 +304,45 @@
                                     <outlet property="delegate" destination="TaK-mF-Oly" id="M7O-gr-eBf"/>
                                 </connections>
                             </textView>
-                            <textField hidden="YES" opaque="NO" tag="5" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Stuff" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="PFN-Mm-evJ">
-                                <rect key="frame" x="84" y="299" width="448" height="30"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="448" id="OYU-dR-ejQ"/>
-                                </constraints>
-                                <nil key="textColor"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <textInputTraits key="textInputTraits"/>
-                            </textField>
+                            <stackView hidden="YES" opaque="NO" tag="5" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="JVk-is-yro">
+                                <rect key="frame" x="84" y="299" width="488" height="30"/>
+                                <subviews>
+                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Stuff" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="PFN-Mm-evJ">
+                                        <rect key="frame" x="0.0" y="0.0" width="448" height="30"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="448" id="OYU-dR-ejQ"/>
+                                        </constraints>
+                                        <nil key="textColor"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                        <connections>
+                                            <outlet property="delegate" destination="TaK-mF-Oly" id="Rob-R6-SbL"/>
+                                        </connections>
+                                    </textField>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="K0B-FS-jse">
+                                        <rect key="frame" x="448" y="0.0" width="40" height="30"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <state key="normal" title="Apply"/>
+                                        <connections>
+                                            <action selector="applyCopyrightButton:" destination="TaK-mF-Oly" eventType="touchUpInside" id="l8f-uC-jbO"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                            </stackView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="Iml-kw-Cek" firstAttribute="top" secondItem="pVr-rd-Dr9" secondAttribute="top" constant="84" id="1Pc-Xa-HzP"/>
+                            <constraint firstItem="JVk-is-yro" firstAttribute="leading" secondItem="ec4-rE-b5z" secondAttribute="trailing" id="3CP-hR-x3s"/>
+                            <constraint firstItem="JVk-is-yro" firstAttribute="centerY" secondItem="73j-uP-02a" secondAttribute="top" constant="294" id="CO1-Xa-JOb"/>
                             <constraint firstItem="ec4-rE-b5z" firstAttribute="top" secondItem="73j-uP-02a" secondAttribute="top" id="JK4-Qq-kI3"/>
                             <constraint firstItem="mV0-Vc-Hdd" firstAttribute="leading" secondItem="ec4-rE-b5z" secondAttribute="trailing" id="Lyc-yQ-Wwc"/>
                             <constraint firstItem="Iml-kw-Cek" firstAttribute="leading" secondItem="ec4-rE-b5z" secondAttribute="trailing" id="Mi7-uj-lMi"/>
                             <constraint firstItem="ec4-rE-b5z" firstAttribute="leading" secondItem="t7n-LD-a8L" secondAttribute="leading" id="NvF-A7-g6L"/>
                             <constraint firstItem="pVr-rd-Dr9" firstAttribute="top" secondItem="ec4-rE-b5z" secondAttribute="top" id="add-kH-Ieu"/>
                             <constraint firstItem="UjZ-lu-HxN" firstAttribute="bottom" secondItem="73j-uP-02a" secondAttribute="bottom" id="ePR-mS-NnL"/>
-                            <constraint firstItem="PFN-Mm-evJ" firstAttribute="leading" secondItem="ec4-rE-b5z" secondAttribute="trailing" id="ed1-1l-beq"/>
                             <constraint firstAttribute="trailing" secondItem="UjZ-lu-HxN" secondAttribute="trailing" id="ek6-NL-jKc"/>
                             <constraint firstItem="UjZ-lu-HxN" firstAttribute="leading" secondItem="ec4-rE-b5z" secondAttribute="trailing" id="gyR-he-gzm"/>
-                            <constraint firstItem="PFN-Mm-evJ" firstAttribute="centerY" secondItem="73j-uP-02a" secondAttribute="top" constant="294" id="j6g-Pi-hGf"/>
                             <constraint firstItem="mV0-Vc-Hdd" firstAttribute="top" secondItem="UjZ-lu-HxN" secondAttribute="top" constant="168" id="uTS-Ph-dvm"/>
                             <constraint firstItem="ec4-rE-b5z" firstAttribute="top" secondItem="UjZ-lu-HxN" secondAttribute="top" id="y8S-7t-hPp"/>
                             <constraint firstItem="pVr-rd-Dr9" firstAttribute="leading" secondItem="UjZ-lu-HxN" secondAttribute="leading" id="zYg-eX-ogx"/>

@@ -8,7 +8,7 @@
 
 import UIKit
 
-class PhotoViewController : UIViewController, UITextViewDelegate {
+class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDelegate {
     
     var imageArray: [UIImage]?
     var activeImage: UIImage?
@@ -91,16 +91,27 @@ class PhotoViewController : UIViewController, UITextViewDelegate {
         ])
     }
     @objc func addCopyrightSymbol(sender: UIButton!) {
-        print("©")
+        if copyrightField.text != nil && copyrightField.text != ""{
+            copyrightField.text = copyrightField.text! + "©"
+        }else{
+            copyrightField.text = "©"
+        }
     }
     @objc func addRegisteredSymbol(sender: UIButton!) {
-        print("®")
+        if copyrightField.text != nil && copyrightField.text != ""{
+            copyrightField.text = copyrightField.text! + "®"
+        }else{
+            copyrightField.text = "®"
+        }
     }
     
     func hideSelector(){
         if self.activeSelector == self.view.viewWithTag(4){
             let keyboardView = self.activeSelector
             keyboardView?.endEditing(true)
+        }
+        if self.activeSelector == self.view.viewWithTag(5){
+            copyrightField.endEditing(true)
         }
         self.activeSelector?.isHidden = true
         self.activeSelector = nil
@@ -257,10 +268,11 @@ class PhotoViewController : UIViewController, UITextViewDelegate {
     
     
     @objc func showCopyRightField(){
-        if copyrightField.isHidden{
+        let copyRightStack = self.view.viewWithTag(5)!
+        if copyRightStack.isHidden{
             self.hideSelector()
-            copyrightField.isHidden = false
-            self.activeSelector = copyrightField
+            copyRightStack.isHidden = false
+            self.activeSelector = copyRightStack
         }else{
             if copyrightButton.titleColor(for: .normal) == .darkText{
                 self.addCopyright()
@@ -277,6 +289,15 @@ class PhotoViewController : UIViewController, UITextViewDelegate {
     func addCopyright(){
         copyrightButton.setTitleColor(.lightGray, for: .normal)
         print("Apply Copyright")
+    }
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        if string.count != 0 || range.length != 0{
+            copyrightButton.setTitleColor(.darkText, for: .normal)
+        }
+        return true
+    }
+    @IBAction func applyCopyrightButton(_ sender: UIButton) {
+        self.addCopyright()
     }
     
     @IBOutlet weak var copyrightButton: UIButton!
