@@ -24,8 +24,43 @@
                                 <rect key="frame" x="84" y="20" width="1282" height="1004"/>
                                 <color key="backgroundColor" white="0.66666666669999997" alpha="1" colorSpace="calibratedWhite"/>
                             </imageView>
+                            <stackView hidden="YES" opaque="NO" tag="16" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="0tI-mf-nDX">
+                                <rect key="frame" x="84" y="356" width="252" height="84"/>
+                                <subviews>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7OD-ih-zmi">
+                                        <rect key="frame" x="0.0" y="0.0" width="84" height="84"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" secondItem="7OD-ih-zmi" secondAttribute="height" multiplier="1:1" id="Kbb-Ge-Y4H"/>
+                                        </constraints>
+                                        <inset key="imageEdgeInsets" minX="10" minY="10" maxX="10" maxY="10"/>
+                                        <state key="normal" image="thumbs.png"/>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hog-R3-tWk">
+                                        <rect key="frame" x="84" y="0.0" width="84" height="84"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" secondItem="hog-R3-tWk" secondAttribute="height" multiplier="1:1" id="nOM-86-IKf"/>
+                                        </constraints>
+                                        <inset key="imageEdgeInsets" minX="10" minY="10" maxX="10" maxY="10"/>
+                                        <state key="normal" image="fit.png"/>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="SXM-cj-L5n">
+                                        <rect key="frame" x="168" y="0.0" width="84" height="84"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" secondItem="SXM-cj-L5n" secondAttribute="height" multiplier="1:1" id="iLt-c4-X9E"/>
+                                        </constraints>
+                                        <inset key="imageEdgeInsets" minX="10" minY="10" maxX="10" maxY="10"/>
+                                        <state key="normal" image="100percent.png"/>
+                                    </button>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="84" id="XeE-Fg-1nY"/>
+                                </constraints>
+                            </stackView>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="ec4-rE-b5z">
-                                <rect key="frame" x="0.0" y="20" width="84" height="336"/>
+                                <rect key="frame" x="0.0" y="20" width="84" height="420"/>
                                 <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" restorationIdentifier="starButton" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="owY-Kc-TPS">
                                         <rect key="frame" x="0.0" y="0.0" width="84" height="84"/>
@@ -75,6 +110,16 @@
                                         <fontDescription key="fontDescription" type="system" pointSize="36"/>
                                         <state key="normal" title="©">
                                             <color key="titleColor" cocoaTouchSystemColor="darkTextColor"/>
+                                        </state>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IAo-wd-FkF">
+                                        <rect key="frame" x="0.0" y="336" width="84" height="84"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" secondItem="IAo-wd-FkF" secondAttribute="height" multiplier="1:1" id="rug-U3-Mcn"/>
+                                        </constraints>
+                                        <inset key="imageEdgeInsets" minX="10" minY="10" maxX="10" maxY="10"/>
+                                        <state key="normal" image="thumbs.png">
+                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         </state>
                                     </button>
                                 </subviews>
@@ -293,6 +338,7 @@
                             </stackView>
                             <stackView opaque="NO" tag="1" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" translatesAutoresizingMaskIntoConstraints="NO" id="Os7-xd-mps">
                                 <rect key="frame" x="84" y="20" width="1282" height="1004"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </stackView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -302,11 +348,13 @@
                             <constraint firstItem="Os7-xd-mps" firstAttribute="leading" secondItem="ec4-rE-b5z" secondAttribute="trailing" id="4sq-Wa-pIc"/>
                             <constraint firstItem="JVk-is-yro" firstAttribute="centerY" secondItem="73j-uP-02a" secondAttribute="top" constant="294" id="CO1-Xa-JOb"/>
                             <constraint firstItem="Os7-xd-mps" firstAttribute="trailing" secondItem="73j-uP-02a" secondAttribute="trailing" id="G5v-5b-H1q"/>
+                            <constraint firstItem="0tI-mf-nDX" firstAttribute="leading" secondItem="ec4-rE-b5z" secondAttribute="trailing" id="I6U-Qq-aVy"/>
                             <constraint firstItem="ec4-rE-b5z" firstAttribute="top" secondItem="73j-uP-02a" secondAttribute="top" id="JK4-Qq-kI3"/>
                             <constraint firstItem="mV0-Vc-Hdd" firstAttribute="leading" secondItem="ec4-rE-b5z" secondAttribute="trailing" id="Lyc-yQ-Wwc"/>
                             <constraint firstItem="Iml-kw-Cek" firstAttribute="leading" secondItem="ec4-rE-b5z" secondAttribute="trailing" id="Mi7-uj-lMi"/>
                             <constraint firstItem="ec4-rE-b5z" firstAttribute="leading" secondItem="t7n-LD-a8L" secondAttribute="leading" id="NvF-A7-g6L"/>
                             <constraint firstItem="Os7-xd-mps" firstAttribute="bottom" secondItem="73j-uP-02a" secondAttribute="bottom" id="S3Q-ro-bS9"/>
+                            <constraint firstItem="0tI-mf-nDX" firstAttribute="top" secondItem="73j-uP-02a" secondAttribute="top" constant="336" id="SwZ-jA-aeB"/>
                             <constraint firstItem="pVr-rd-Dr9" firstAttribute="top" secondItem="ec4-rE-b5z" secondAttribute="top" id="add-kH-Ieu"/>
                             <constraint firstItem="UjZ-lu-HxN" firstAttribute="bottom" secondItem="73j-uP-02a" secondAttribute="bottom" id="ePR-mS-NnL"/>
                             <constraint firstAttribute="trailing" secondItem="UjZ-lu-HxN" secondAttribute="trailing" id="ek6-NL-jKc"/>
@@ -330,13 +378,16 @@
         </scene>
     </scenes>
     <resources>
+        <image name="100percent.png" width="64" height="64"/>
         <image name="blue_square.png" width="64" height="64"/>
         <image name="empty_square.png" width="64" height="64"/>
+        <image name="fit.png" width="64" height="64"/>
         <image name="green_square.png" width="64" height="64"/>
         <image name="orange_square.png" width="64" height="64"/>
         <image name="pink_square.png" width="64" height="64"/>
         <image name="purple_square.png" width="64" height="64"/>
         <image name="red_square.png" width="64" height="64"/>
+        <image name="thumbs.png" width="64" height="64"/>
         <image name="yellow_square.png" width="64" height="64"/>
     </resources>
 </document>
