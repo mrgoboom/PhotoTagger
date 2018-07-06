@@ -16,6 +16,12 @@ enum viewState {
     case actualSize
 }
 
+enum galleryViewMode {
+    case all
+    case date
+    case album
+}
+
 class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDelegate, UICollectionViewDataSource, UICollectionViewDelegate {
     
     var activeImageArray = [UIImage]()
@@ -25,33 +31,47 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     let defaultKeywordText = "Type comma-separated keywords here"
     var textViewText = ""
     var imageArray = [[UIImage]]()
-    var momentArray = [PHAssetCollection]()
+    var keyArray = [String]()
     var collectionViewArray = [UICollectionView]()
     var viewType = viewState.gallery
+    var galleryView = galleryViewMode.all
     var tempActive = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        self.viewType = .gallery
         let myStackView = self.view.viewWithTag(1) as! UIStackView
+        clearStackView()
         self.view.sendSubview(toBack: myStackView)
         
+        self.imageArray = [[UIImage]]()
+        self.keyArray = [String]()
+        self.collectionViewArray = [UICollectionView]()
         
-        /* Sort by moments: Currently has issues when video present
-        grabMoments()
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM dd, YYYY"
-        var lastLabel = ""
-        for index in 0..<self.momentArray.count{
-            let moment = momentArray[index]
-            grabPhotos(moment: moment)
-            let newLabel = formatter.string(from: moment.startDate!)
-            if newLabel != lastLabel{
-                lastLabel = newLabel
+        grabPhotos()
+        if self.galleryView == .all{
+            let layout = UICollectionViewFlowLayout()
+            let width = 100 as CGFloat
+            let height = 150 as CGFloat
+            layout.itemSize = CGSize(width: width, height: height)
+            let collectionView = UICollectionView(frame: myStackView.bounds, collectionViewLayout: layout)
+            collectionView.delegate = self
+            collectionView.dataSource = self
+            collectionView.register(PhotoCell.self, forCellWithReuseIdentifier: "0")
+            collectionView.backgroundColor = .white
+            myStackView.addArrangedSubview(collectionView)
+            
+            
+            collectionView.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                collectionView.heightAnchor.constraint(equalToConstant: height)
+            ])
+            collectionView.reloadData()
+            self.collectionViewArray.append(collectionView)
+        }else{
+            for i in 0..<keyArray.count{
                 let label = UILabel()
-                label.text = newLabel
-                label.textAlignment = NSTextAlignment.left
+                label.text = keyArray[i]
+                label.textAlignment = .left
                 label.translatesAutoresizingMaskIntoConstraints = false
                 myStackView.addArrangedSubview(label)
                 
@@ -62,8 +82,8 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                 let newCollectionView = UICollectionView(frame: myStackView.bounds, collectionViewLayout: layout)
                 newCollectionView.delegate = self
                 newCollectionView.dataSource = self
-                newCollectionView.register(PhotoCell.self, forCellWithReuseIdentifier: String(self.collectionViewArray.count))
-                newCollectionView.backgroundColor = UIColor.white
+                newCollectionView.register(PhotoCell.self, forCellWithReuseIdentifier: String(i))
+                newCollectionView.backgroundColor = .white
                 myStackView.addArrangedSubview(newCollectionView)
                 
                 newCollectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -71,33 +91,9 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                     newCollectionView.heightAnchor.constraint(equalToConstant: height)
                 ])
                 newCollectionView.reloadData()
-                
                 self.collectionViewArray.append(newCollectionView)
             }
-            //print(myStackView.arrangedSubviews)
-            //print()
         }
-        */
-        /* Just grabs all photos */
-        grabPhotos(moment: nil)
-        let layout = UICollectionViewFlowLayout()
-        let width = 100 as CGFloat
-        let height = 150 as CGFloat
-        layout.itemSize = CGSize(width: width, height: height)
-        let collectionView = UICollectionView(frame: myStackView.bounds, collectionViewLayout: layout)
-        collectionView.delegate = self
-        collectionView.dataSource = self
-        collectionView.register(PhotoCell.self, forCellWithReuseIdentifier: "0")
-        collectionView.backgroundColor = UIColor.white
-        myStackView.addArrangedSubview(collectionView)
-        
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            collectionView.heightAnchor.constraint(equalToConstant: height)
-        ])
-        collectionView.reloadData()
-        self.collectionViewArray.append(collectionView)
-        
         
         
         
@@ -137,8 +133,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                 if i < imageArray.count{
                     count = imageArray[i].count
                 }
-                //print(count, " items in collectionview ", i)
-                //print()
             }
         }
         return count
@@ -160,7 +154,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                 imageView.image = imageArray[i][indexPath.row]
                 
                 let height = collectionView.collectionViewLayout.collectionViewContentSize.height
-                //print("height of collection view ", i, " is ", height)
                 let oldConstraint = collectionView.constraints[0]
                 NSLayoutConstraint.deactivate([oldConstraint])
                 NSLayoutConstraint.activate([
@@ -199,19 +192,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         return nil
     }
     
-    func grabMoments(){
-        let fetchOptions=PHFetchOptions()
-        fetchOptions.sortDescriptors=[NSSortDescriptor(key:"startDate", ascending: false)]
-        
-        let fetchResult = PHAssetCollection.fetchAssetCollections(with: PHAssetCollectionType.moment, subtype: PHAssetCollectionSubtype.any, options: fetchOptions)
-        for i in 0..<fetchResult.count {
-            let resObj = fetchResult.object(at: i)
-            print(resObj.startDate!)
-            self.momentArray.append(resObj)
-        }
-    }
-    
-    func grabPhotos(moment: PHAssetCollection?) {
+    func grabPhotos() {
         let imgManager=PHImageManager.default()
         
         let requestOptions=PHImageRequestOptions()
@@ -222,50 +203,41 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         fetchOptions.sortDescriptors=[NSSortDescriptor(key:"creationDate", ascending: false)]
         
         let fetchResult: PHFetchResult<PHAsset>
-        if moment != nil{
-            fetchResult = PHAsset.fetchAssets(in: moment!, options: fetchOptions)
-        }else{
-            fetchResult = PHAsset.fetchAssets(with: .image, options: fetchOptions)
-        }
+        fetchResult = PHAsset.fetchAssets(with: .image, options: fetchOptions)
         print(fetchResult)
         if fetchResult.count > 0 {
             for i in 0..<fetchResult.count{
                 imgManager.requestImage(for: fetchResult.object(at: i) as PHAsset, targetSize: PHImageManagerMaximumSize,contentMode: .aspectFit, options: requestOptions, resultHandler: { (image, error) in
-                    self.addImage(image: image!, moment: moment)
+                    self.addImage(image: image!, data: fetchResult.object(at: i))
                 })
             }
         }
     }
     
-    func addImage(image: UIImage, moment: PHAssetCollection?){
-        if moment != nil{
-            let formatter = DateFormatter()
-            formatter.dateFormat = "MMMM dd, YYYY"
-            let momentDate = formatter.string(from: moment!.startDate!)
-            var index = 0
-            var lastMoment = ""
-            for m in self.momentArray{
-                let thisMoment = formatter.string(from: m.startDate!)
-                if momentDate == thisMoment{
-                    break
-                }else if thisMoment != lastMoment{
-                    index += 1
-                    lastMoment = thisMoment
-                }
-            }
-            if index < imageArray.count{
-                self.imageArray[index].append(image)
-            }else{
-                var newArray = [UIImage]()
-                newArray.append(image)
-                self.imageArray.append(newArray)
-            }
-        }else{
+    func addImage(image: UIImage, data: PHAsset){
+        if self.galleryView == .all{
             if self.imageArray.count == 0{
                 let newArray = [UIImage]()
                 imageArray.append(newArray)
             }
             imageArray[0].append(image)
+        }else if self.galleryView == .date{
+            var index = 0
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMMM dd, YYYY"
+            let imageDate = formatter.string(from: data.creationDate!)
+            while index < self.imageArray.count{
+                if  imageDate == keyArray[index]{
+                    break
+                }
+                index += 1
+            }
+            if index == self.imageArray.count{
+                keyArray.append(imageDate)
+                let newArray = [UIImage]()
+                imageArray.append(newArray)
+            }
+            imageArray[index].append(image)
         }
     }
     
@@ -542,6 +514,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
             self.activeImageArray.removeAll()
         }
         self.hideSelector()
+        self.viewSelector.isHidden = false
         self.viewType = .gallery
     }
     @IBAction func setViewToFit(_ sender: UIButton) {
@@ -560,6 +533,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                 return
             }
             imageView.image = self.activeImageArray[0]
+            self.viewSelector.isHidden = true
             imageViewHolder!.isHidden = false
         }
         let fitImage = UIImage(named: "fit")?.withRenderingMode(.alwaysOriginal)
@@ -581,74 +555,119 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                 self.tempActive = true
             }
             imageView.image = self.activeImageArray[0]
+            self.viewSelector.isHidden = true
             imageViewHolder!.isHidden = false
         }
         let actualImage = UIImage(named: "100percent")?.withRenderingMode(.alwaysOriginal)
         viewOptionButton.setImage(actualImage, for: .normal)
-        imageView.contentMode = .center
+        imageView.contentMode = .scaleAspectFit
+        let scaleAdjustment: CGFloat
+        guard let image = imageView.image else{return}
+        let imageFrame = AVMakeRect(aspectRatio: image.size, insideRect: imageView.frame)
+        if imageFrame.minX - imageView.frame.minX < imageFrame.minY - imageView.frame.minY{
+            print("landscape")
+            scaleAdjustment = (image.size.width*image.scale)/(imageView.frame.width*UIScreen.main.scale)
+        }else{
+            print("portrait")
+            scaleAdjustment = (image.size.height*image.scale)/(imageView.frame.height*UIScreen.main.scale)
+        }
+        print("scaleAdjustment: ", scaleAdjustment)
+        imageView.transform = imageView.transform.scaledBy(x: scaleAdjustment, y: scaleAdjustment)
         self.viewType = .actualSize
         self.hideSelector()
     }
     
     @objc func pinch(sender: UIPinchGestureRecognizer){
         if sender.state == .changed {
-            guard let view = sender.view else {return}
+            guard let view = sender.view as! UIImageView? else {return}
             let pinchCenter = CGPoint(x: sender.location(in: view).x - view.bounds.midX,
                                       y: sender.location(in: view).y - view.bounds.midY)
             let transform = view.transform.translatedBy(x: pinchCenter.x, y: pinchCenter.y)
                 .scaledBy(x: sender.scale, y: sender.scale)
                 .translatedBy(x: -pinchCenter.x, y: -pinchCenter.y)
             view.transform = transform
+            let translation = correctImageToBounds(imageView: view, translation: nil)
+            view.transform = view.transform.translatedBy(x: translation.x, y: translation.y)
             sender.scale = 1
         }
     }
-    
     @objc func pan(sender: UIPanGestureRecognizer){
         guard let containerView = self.view.viewWithTag(20) else {return}
         var translation = sender.translation(in: containerView)
         let imageView = sender.view as! UIImageView
+        
+        translation = correctImageToBounds(imageView: imageView, translation: translation)
+        
+        imageView.transform = imageView.transform.translatedBy(x: translation.x, y: translation.y)
+        
+        sender.setTranslation(CGPoint.zero, in: containerView)
+
+    }
+    func correctImageToBounds(imageView: UIImageView, translation: CGPoint?) -> CGPoint{
+        var finalTranslation : CGPoint
+        if translation == nil{
+            finalTranslation = CGPoint(x: 0, y: 0)
+        }else{
+            finalTranslation = translation!
+        }
         let imageFrame = AVMakeRect(aspectRatio: imageView.image!.size, insideRect: imageView.frame)
-        //let imageViewFrame = imageView.frame
-        /*let imageFrameMinX = imageFrame.minX
-        let imageFrameMaxX = imageFrame.maxX
-        let imageFrameMinY = imageFrame.minY
-        let imageFrameMaxY = imageFrame.maxY*/
-        let rightSpace = imageView.frame.maxX - imageFrame.maxX
+        
         let leftSpace = imageFrame.minX - imageView.frame.minX
+        let rightSpace = imageView.frame.maxX - imageFrame.maxX
         if imageFrame.width > imageView.bounds.width{
-            if imageView.bounds.minX < imageView.frame.minX + leftSpace + translation.x{
-                translation.x = imageView.bounds.minX - imageView.frame.minX - leftSpace
-            }else if imageView.bounds.maxX > imageView.frame.maxX - rightSpace + translation.x{
-                translation.x = imageView.bounds.maxX - imageView.frame.maxX + rightSpace
+            if imageView.bounds.minX < imageView.frame.minX + leftSpace + finalTranslation.x{
+                finalTranslation.x = imageView.bounds.minX - imageView.frame.minX - leftSpace
+            }else if imageView.bounds.maxX > imageView.frame.maxX - rightSpace + finalTranslation.x{
+                finalTranslation.x = imageView.bounds.maxX - imageView.frame.maxX + rightSpace
             }
         }else{
-            if imageView.frame.minX + leftSpace + translation.x < imageView.bounds.minX{
-                translation.x = imageView.bounds.minX - imageView.frame.minX - leftSpace
-            }else if imageView.frame.maxX - rightSpace + translation.x > imageView.bounds.maxX{
-                translation.x = imageView.bounds.maxX - imageView.frame.maxX + rightSpace
+            if imageView.frame.minX + leftSpace + finalTranslation.x < imageView.bounds.minX{
+                finalTranslation.x = imageView.bounds.minX - imageView.frame.minX - leftSpace
+            }else if imageView.frame.maxX - rightSpace + finalTranslation.x > imageView.bounds.maxX{
+                finalTranslation.x = imageView.bounds.maxX - imageView.frame.maxX + rightSpace
             }
         }
         let topSpace = imageFrame.minY - imageView.frame.minY
         let bottomSpace = imageView.frame.maxY - imageFrame.maxY
         if imageFrame.height > imageView.bounds.height{
-            if imageView.bounds.minY < imageView.frame.minY + topSpace + translation.y{
-                translation.y = imageView.bounds.minY - imageView.frame.minY - topSpace
-            }else if imageView.bounds.maxY > imageView.frame.maxY - bottomSpace + translation.y{
-                translation.y = imageView.bounds.maxY - imageView.frame.maxY + bottomSpace
+            if imageView.bounds.minY < imageView.frame.minY + topSpace + finalTranslation.y{
+                finalTranslation.y = imageView.bounds.minY - imageView.frame.minY - topSpace
+            }else if imageView.bounds.maxY > imageView.frame.maxY - bottomSpace + finalTranslation.y{
+                finalTranslation.y = imageView.bounds.maxY - imageView.frame.maxY + bottomSpace
             }
         }else{
-            if imageView.frame.minY + topSpace + translation.y < imageView.bounds.minY{
-                translation.y = imageView.bounds.minY - imageView.frame.minY - topSpace
-            }else if imageView.frame.maxY - bottomSpace + translation.y > imageView.bounds.maxY{
-                translation.y = imageView.bounds.maxY - imageView.frame.maxY + bottomSpace
+            if imageView.frame.minY + topSpace + finalTranslation.y < imageView.bounds.minY{
+                finalTranslation.y = imageView.bounds.minY - imageView.frame.minY - topSpace
+            }else if imageView.frame.maxY - bottomSpace + finalTranslation.y > imageView.bounds.maxY{
+                finalTranslation.y = imageView.bounds.maxY - imageView.frame.maxY + bottomSpace
             }
         }
-        
-        imageView.transform = imageView.transform.translatedBy(x: translation.x, y: translation.y)
-        
-        sender.setTranslation(CGPoint.zero, in: containerView)
+        return finalTranslation
     }
     
+    @IBAction func galleryViewSelect(_ sender: UIButton) {
+        if sender == self.allGalleryButton && self.galleryView != .all{
+            self.galleryView = .all
+            self.allGalleryButton.isHighlighted = true
+            self.dateGalleryButton.isHighlighted = false
+            self.viewDidLoad()
+        }else if sender == dateGalleryButton && self.galleryView != .date{
+            self.galleryView = .date
+            self.allGalleryButton.isHighlighted = false
+            self.dateGalleryButton.isHighlighted = true
+            self.viewDidLoad()
+        }
+    }
+    func clearStackView(){
+        let myStackView = self.view.viewWithTag(1) as! UIStackView
+        for v in myStackView.subviews {
+            v.removeFromSuperview()
+        }
+    }
+    
+    @IBOutlet weak var allGalleryButton: UIButton!
+    @IBOutlet weak var dateGalleryButton: UIButton!
+    @IBOutlet weak var viewSelector: UIView!
     @IBOutlet weak var copyrightButton: UIButton!
     @IBOutlet weak var viewOptionButton: UIButton!
     @IBOutlet weak var copyrightField: UITextField!
