@@ -96,23 +96,35 @@
                                 <rect key="frame" x="84" y="20" width="1282" height="1004"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </stackView>
-                            <scrollView hidden="YES" clipsSubviews="YES" multipleTouchEnabled="YES" tag="20" contentMode="center" translatesAutoresizingMaskIntoConstraints="NO" id="N1m-NW-kbT">
+                            <view hidden="YES" tag="20" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EsR-ry-vme">
                                 <rect key="frame" x="84" y="20" width="1282" height="1004"/>
                                 <subviews>
-                                    <imageView clipsSubviews="YES" tag="13" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="UjZ-lu-HxN">
+                                    <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" tag="21" contentMode="center" translatesAutoresizingMaskIntoConstraints="NO" id="N1m-NW-kbT">
                                         <rect key="frame" x="0.0" y="0.0" width="1282" height="1004"/>
-                                        <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    </imageView>
+                                        <subviews>
+                                            <imageView tag="13" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="UjZ-lu-HxN">
+                                                <rect key="frame" x="0.0" y="0.0" width="1282" height="1004"/>
+                                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            </imageView>
+                                        </subviews>
+                                        <constraints>
+                                            <constraint firstItem="UjZ-lu-HxN" firstAttribute="centerX" secondItem="N1m-NW-kbT" secondAttribute="centerX" id="6X5-s8-EHr"/>
+                                            <constraint firstItem="UjZ-lu-HxN" firstAttribute="top" secondItem="N1m-NW-kbT" secondAttribute="top" id="J46-6s-4zk"/>
+                                            <constraint firstItem="UjZ-lu-HxN" firstAttribute="leading" secondItem="N1m-NW-kbT" secondAttribute="leading" id="S9v-ZM-3dE"/>
+                                            <constraint firstAttribute="trailing" secondItem="UjZ-lu-HxN" secondAttribute="trailing" id="VgV-sX-g4k"/>
+                                            <constraint firstAttribute="bottom" secondItem="UjZ-lu-HxN" secondAttribute="bottom" id="iYO-2I-rce"/>
+                                            <constraint firstItem="UjZ-lu-HxN" firstAttribute="centerY" secondItem="N1m-NW-kbT" secondAttribute="centerY" id="tK5-Rs-YL9"/>
+                                        </constraints>
+                                    </scrollView>
                                 </subviews>
+                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
-                                    <constraint firstItem="UjZ-lu-HxN" firstAttribute="centerX" secondItem="N1m-NW-kbT" secondAttribute="centerX" id="6X5-s8-EHr"/>
-                                    <constraint firstItem="UjZ-lu-HxN" firstAttribute="top" secondItem="N1m-NW-kbT" secondAttribute="top" id="J46-6s-4zk"/>
-                                    <constraint firstItem="UjZ-lu-HxN" firstAttribute="leading" secondItem="N1m-NW-kbT" secondAttribute="leading" id="S9v-ZM-3dE"/>
-                                    <constraint firstAttribute="trailing" secondItem="UjZ-lu-HxN" secondAttribute="trailing" id="VgV-sX-g4k"/>
-                                    <constraint firstAttribute="bottom" secondItem="UjZ-lu-HxN" secondAttribute="bottom" id="iYO-2I-rce"/>
-                                    <constraint firstItem="UjZ-lu-HxN" firstAttribute="centerY" secondItem="N1m-NW-kbT" secondAttribute="centerY" id="tK5-Rs-YL9"/>
+                                    <constraint firstItem="N1m-NW-kbT" firstAttribute="top" secondItem="EsR-ry-vme" secondAttribute="top" id="Gir-jZ-fnP"/>
+                                    <constraint firstAttribute="trailing" secondItem="N1m-NW-kbT" secondAttribute="trailing" id="OQZ-aU-Z4O"/>
+                                    <constraint firstAttribute="bottom" secondItem="N1m-NW-kbT" secondAttribute="bottom" id="jSd-Yd-6sz"/>
+                                    <constraint firstItem="N1m-NW-kbT" firstAttribute="leading" secondItem="EsR-ry-vme" secondAttribute="leading" id="wjY-ny-NBt"/>
                                 </constraints>
-                            </scrollView>
+                            </view>
                             <stackView hidden="YES" opaque="NO" tag="15" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="JVk-is-yro">
                                 <rect key="frame" x="84" y="299" width="488" height="30"/>
                                 <subviews>
@@ -370,10 +382,10 @@
                         <constraints>
                             <constraint firstItem="Iml-kw-Cek" firstAttribute="top" secondItem="pVr-rd-Dr9" secondAttribute="top" constant="84" id="1Pc-Xa-HzP"/>
                             <constraint firstItem="JVk-is-yro" firstAttribute="leading" secondItem="ec4-rE-b5z" secondAttribute="trailing" id="3CP-hR-x3s"/>
-                            <constraint firstItem="N1m-NW-kbT" firstAttribute="top" secondItem="73j-uP-02a" secondAttribute="top" id="4od-yz-1Zo"/>
                             <constraint firstItem="Os7-xd-mps" firstAttribute="leading" secondItem="ec4-rE-b5z" secondAttribute="trailing" id="4sq-Wa-pIc"/>
-                            <constraint firstItem="N1m-NW-kbT" firstAttribute="leading" secondItem="ec4-rE-b5z" secondAttribute="trailing" id="BS1-aK-Kbz"/>
                             <constraint firstItem="JVk-is-yro" firstAttribute="centerY" secondItem="73j-uP-02a" secondAttribute="top" constant="294" id="CO1-Xa-JOb"/>
+                            <constraint firstItem="EsR-ry-vme" firstAttribute="top" secondItem="73j-uP-02a" secondAttribute="top" id="FH2-uL-oLu"/>
+                            <constraint firstItem="73j-uP-02a" firstAttribute="trailing" secondItem="EsR-ry-vme" secondAttribute="trailing" id="FOC-nE-yRb"/>
                             <constraint firstItem="Os7-xd-mps" firstAttribute="trailing" secondItem="73j-uP-02a" secondAttribute="trailing" id="G5v-5b-H1q"/>
                             <constraint firstItem="0tI-mf-nDX" firstAttribute="leading" secondItem="ec4-rE-b5z" secondAttribute="trailing" id="I6U-Qq-aVy"/>
                             <constraint firstItem="ec4-rE-b5z" firstAttribute="top" secondItem="73j-uP-02a" secondAttribute="top" id="JK4-Qq-kI3"/>
@@ -382,11 +394,11 @@
                             <constraint firstItem="ec4-rE-b5z" firstAttribute="leading" secondItem="t7n-LD-a8L" secondAttribute="leading" id="NvF-A7-g6L"/>
                             <constraint firstItem="Os7-xd-mps" firstAttribute="bottom" secondItem="73j-uP-02a" secondAttribute="bottom" id="S3Q-ro-bS9"/>
                             <constraint firstItem="0tI-mf-nDX" firstAttribute="top" secondItem="73j-uP-02a" secondAttribute="top" constant="336" id="SwZ-jA-aeB"/>
+                            <constraint firstItem="73j-uP-02a" firstAttribute="bottom" secondItem="EsR-ry-vme" secondAttribute="bottom" id="WUP-Gs-o9o"/>
                             <constraint firstItem="pVr-rd-Dr9" firstAttribute="top" secondItem="ec4-rE-b5z" secondAttribute="top" id="add-kH-Ieu"/>
                             <constraint firstItem="mV0-Vc-Hdd" firstAttribute="top" secondItem="73j-uP-02a" secondAttribute="top" constant="168" id="elw-tu-ZLN"/>
-                            <constraint firstItem="N1m-NW-kbT" firstAttribute="bottom" secondItem="73j-uP-02a" secondAttribute="bottom" id="lJJ-NF-U65"/>
-                            <constraint firstItem="N1m-NW-kbT" firstAttribute="trailing" secondItem="73j-uP-02a" secondAttribute="trailing" id="lnm-Tp-228"/>
                             <constraint firstItem="Os7-xd-mps" firstAttribute="top" secondItem="73j-uP-02a" secondAttribute="top" id="mJI-QE-Zxi"/>
+                            <constraint firstItem="EsR-ry-vme" firstAttribute="leading" secondItem="0tI-mf-nDX" secondAttribute="leading" id="rw7-J1-wSx"/>
                             <constraint firstItem="pVr-rd-Dr9" firstAttribute="leading" secondItem="ec4-rE-b5z" secondAttribute="trailing" id="u1f-18-xzb"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="73j-uP-02a"/>

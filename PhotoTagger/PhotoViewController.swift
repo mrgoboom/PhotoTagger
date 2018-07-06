@@ -8,6 +8,7 @@
 
 import UIKit
 import Photos
+import AVFoundation
 
 enum viewState {
     case gallery
@@ -28,7 +29,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     var collectionViewArray = [UICollectionView]()
     var viewType = viewState.gallery
     var tempActive = false
-    var isZooming = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -103,6 +103,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         
         let imageView = self.view.viewWithTag(13) as! UIImageView
         imageView.addGestureRecognizer(UIPinchGestureRecognizer(target: self, action: #selector(pinch(sender:))))
+        imageView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(pan(sender:))))
         
         
         self.rating = 0
@@ -547,6 +548,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         print("fit")
         let imageView = self.view.viewWithTag(13) as! UIImageView
         let imageViewHolder = self.view.viewWithTag(20)
+        imageView.transform = CGAffineTransform.identity
         if self.viewType == .gallery{
             if self.activeImageArray.count == 0{
                 for i in 0..<self.imageArray.count{
@@ -564,13 +566,13 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         viewOptionButton.setImage(fitImage, for: .normal)
         imageView.contentMode = .scaleAspectFit
         self.viewType = .fit
-        self.isZooming = false
         self.hideSelector()
     }
     @IBAction func setViewToActualSize(_ sender: UIButton) {
         print("actual")
         let imageView = self.view.viewWithTag(13) as! UIImageView
         let imageViewHolder = self.view.viewWithTag(20)
+        imageView.transform = CGAffineTransform.identity
         if self.viewType == .gallery{
             if self.activeImageArray.count == 0{
                 for i in 0..<self.imageArray.count{
@@ -585,44 +587,66 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         viewOptionButton.setImage(actualImage, for: .normal)
         imageView.contentMode = .center
         self.viewType = .actualSize
-        self.isZooming = true
         self.hideSelector()
     }
     
     @objc func pinch(sender: UIPinchGestureRecognizer){
-        print("pinch")
-        let imageView = self.view.viewWithTag(13) as! UIImageView
-        if sender.state == .began {
-            let currentScale = imageView.frame.size.width / imageView.bounds.size.width
-            let newScale = currentScale*sender.scale
-            if newScale > 1 {
-                self.isZooming = true
-            }
-        } else if sender.state == .changed {
+        if sender.state == .changed {
             guard let view = sender.view else {return}
             let pinchCenter = CGPoint(x: sender.location(in: view).x - view.bounds.midX,
                                       y: sender.location(in: view).y - view.bounds.midY)
             let transform = view.transform.translatedBy(x: pinchCenter.x, y: pinchCenter.y)
                 .scaledBy(x: sender.scale, y: sender.scale)
                 .translatedBy(x: -pinchCenter.x, y: -pinchCenter.y)
-            /*let currentScale = imageView.frame.size.width / imageView.bounds.size.width
-            var newScale = currentScale*sender.scale
-            if newScale < 1 {
-                newScale = 1
-                let transform = CGAffineTransform(scaleX: newScale, y: newScale)
-                imageView.transform = transform
-                sender.scale = 1
-            }else {*/
             view.transform = transform
             sender.scale = 1
-            //}
-        }/* else if sender.state == .ended {
-            UIView.animate(withDuration: 0.3, animations: {
-                imageView.transform = CGAffineTransform.identity
-            }, completion: { _ in
-                self.isZooming = false
-            })
-        }*/
+        }
+    }
+    
+    @objc func pan(sender: UIPanGestureRecognizer){
+        guard let containerView = self.view.viewWithTag(20) else {return}
+        var translation = sender.translation(in: containerView)
+        let imageView = sender.view as! UIImageView
+        let imageFrame = AVMakeRect(aspectRatio: imageView.image!.size, insideRect: imageView.frame)
+        //let imageViewFrame = imageView.frame
+        /*let imageFrameMinX = imageFrame.minX
+        let imageFrameMaxX = imageFrame.maxX
+        let imageFrameMinY = imageFrame.minY
+        let imageFrameMaxY = imageFrame.maxY*/
+        let rightSpace = imageView.frame.maxX - imageFrame.maxX
+        let leftSpace = imageFrame.minX - imageView.frame.minX
+        if imageFrame.width > imageView.bounds.width{
+            if imageView.bounds.minX < imageView.frame.minX + leftSpace + translation.x{
+                translation.x = imageView.bounds.minX - imageView.frame.minX - leftSpace
+            }else if imageView.bounds.maxX > imageView.frame.maxX - rightSpace + translation.x{
+                translation.x = imageView.bounds.maxX - imageView.frame.maxX + rightSpace
+            }
+        }else{
+            if imageView.frame.minX + leftSpace + translation.x < imageView.bounds.minX{
+                translation.x = imageView.bounds.minX - imageView.frame.minX - leftSpace
+            }else if imageView.frame.maxX - rightSpace + translation.x > imageView.bounds.maxX{
+                translation.x = imageView.bounds.maxX - imageView.frame.maxX + rightSpace
+            }
+        }
+        let topSpace = imageFrame.minY - imageView.frame.minY
+        let bottomSpace = imageView.frame.maxY - imageFrame.maxY
+        if imageFrame.height > imageView.bounds.height{
+            if imageView.bounds.minY < imageView.frame.minY + topSpace + translation.y{
+                translation.y = imageView.bounds.minY - imageView.frame.minY - topSpace
+            }else if imageView.bounds.maxY > imageView.frame.maxY - bottomSpace + translation.y{
+                translation.y = imageView.bounds.maxY - imageView.frame.maxY + bottomSpace
+            }
+        }else{
+            if imageView.frame.minY + topSpace + translation.y < imageView.bounds.minY{
+                translation.y = imageView.bounds.minY - imageView.frame.minY - topSpace
+            }else if imageView.frame.maxY - bottomSpace + translation.y > imageView.bounds.maxY{
+                translation.y = imageView.bounds.maxY - imageView.frame.maxY + bottomSpace
+            }
+        }
+        
+        imageView.transform = imageView.transform.translatedBy(x: translation.x, y: translation.y)
+        
+        sender.setTranslation(CGPoint.zero, in: containerView)
     }
     
     @IBOutlet weak var copyrightButton: UIButton!
