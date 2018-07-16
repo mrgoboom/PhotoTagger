@@ -11,6 +11,7 @@
 		7A9907CA20E5AE2300E70CB8 /* thumbs.png in Resources */ = {isa = PBXBuildFile; fileRef = 7A9907C720E5AE2300E70CB8 /* thumbs.png */; };
 		7A9907CB20E5AE2300E70CB8 /* 100percent.png in Resources */ = {isa = PBXBuildFile; fileRef = 7A9907C820E5AE2300E70CB8 /* 100percent.png */; };
 		7A9907CC20E5AE2300E70CB8 /* fit.png in Resources */ = {isa = PBXBuildFile; fileRef = 7A9907C920E5AE2300E70CB8 /* fit.png */; };
+		7A99676520F807F2007FDE65 /* XMPBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A99676420F807F2007FDE65 /* XMPBuilder.swift */; };
 		7AF53EB620DC6BBA00CAFBE2 /* blue_square.png in Resources */ = {isa = PBXBuildFile; fileRef = 7AF53EAE20DC6BBA00CAFBE2 /* blue_square.png */; };
 		7AF53EB720DC6BBA00CAFBE2 /* green_square.png in Resources */ = {isa = PBXBuildFile; fileRef = 7AF53EAF20DC6BBA00CAFBE2 /* green_square.png */; };
 		7AF53EB820DC6BBA00CAFBE2 /* purple_square.png in Resources */ = {isa = PBXBuildFile; fileRef = 7AF53EB020DC6BBA00CAFBE2 /* purple_square.png */; };
@@ -49,6 +50,7 @@
 		7A9907C720E5AE2300E70CB8 /* thumbs.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = thumbs.png; sourceTree = "<group>"; };
 		7A9907C820E5AE2300E70CB8 /* 100percent.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 100percent.png; sourceTree = "<group>"; };
 		7A9907C920E5AE2300E70CB8 /* fit.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = fit.png; sourceTree = "<group>"; };
+		7A99676420F807F2007FDE65 /* XMPBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPBuilder.swift; sourceTree = "<group>"; };
 		7AF53EAE20DC6BBA00CAFBE2 /* blue_square.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = blue_square.png; sourceTree = "<group>"; };
 		7AF53EAF20DC6BBA00CAFBE2 /* green_square.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = green_square.png; sourceTree = "<group>"; };
 		7AF53EB020DC6BBA00CAFBE2 /* purple_square.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = purple_square.png; sourceTree = "<group>"; };
@@ -136,6 +138,7 @@
 				D2F38EB7201AA97100F79359 /* LaunchScreen.storyboard */,
 				D2F38EBA201AA97100F79359 /* Info.plist */,
 				7A46D15120DB093800286C47 /* PhotoViewController.swift */,
+				7A99676420F807F2007FDE65 /* XMPBuilder.swift */,
 			);
 			path = PhotoTagger;
 			sourceTree = "<group>";
@@ -304,6 +307,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D2F38EAF201AA97100F79359 /* AppDelegate.swift in Sources */,
+				7A99676520F807F2007FDE65 /* XMPBuilder.swift in Sources */,
 				7A46D15220DB093800286C47 /* PhotoViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

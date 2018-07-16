@@ -22,9 +22,10 @@ enum galleryViewMode {
     case album
 }
 
-class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDelegate, UICollectionViewDataSource, UICollectionViewDelegate {
+class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDelegate, UICollectionViewDataSource, UICollectionViewDelegate, UIGestureRecognizerDelegate {
     
     var activeImageArray = [UIImage]()
+    var xmpBuilderForFile = [UIImage : XMPBuilder]()
     var activeSelector: UIView?
     var rating = 0
     var colour = ""
@@ -46,6 +47,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         self.imageArray = [[UIImage]]()
         self.keyArray = [String]()
         self.collectionViewArray = [UICollectionView]()
+        self.xmpBuilderForFile = [UIImage : XMPBuilder]()
         
         grabPhotos()
         if self.galleryView == .all{
@@ -98,9 +100,20 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         
         
         let imageView = self.view.viewWithTag(13) as! UIImageView
-        imageView.addGestureRecognizer(UIPinchGestureRecognizer(target: self, action: #selector(pinch(sender:))))
-        imageView.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(pan(sender:))))
-        
+        let pinch = UIPinchGestureRecognizer(target: self, action: #selector(pinch(sender:)))
+        pinch.delegate = self
+        imageView.addGestureRecognizer(pinch)
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(pan(sender:)))
+        pan.delegate = self
+        imageView.addGestureRecognizer(pan)
+        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(swipe(sender:)))
+        swipeLeft.direction = .left
+        swipeLeft.delegate = self
+        imageView.addGestureRecognizer(swipeLeft)
+        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(swipe(sender:)))
+        swipeRight.direction = .right
+        swipeRight.delegate = self
+        imageView.addGestureRecognizer(swipeRight)
         
         self.rating = 0
         self.rateStars(stars: 0)
@@ -124,6 +137,13 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         super.didReceiveMemoryWarning()
     }
     
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        if (gestureRecognizer is UISwipeGestureRecognizer && otherGestureRecognizer is UIPanGestureRecognizer) || (gestureRecognizer is UIPanGestureRecognizer && otherGestureRecognizer is UISwipeGestureRecognizer){
+            return true
+        }else{
+            return false
+        }
+    }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         var count = 0
@@ -215,29 +235,36 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     }
     
     func addImage(image: UIImage, data: PHAsset){
+
+        data.requestContentEditingInput(with: PHContentEditingInputRequestOptions(), completionHandler: {(input, _) in
+            guard let url = input!.fullSizeImageURL else{ return }
+            print("found image: ", url)
+            self.xmpBuilderForFile.updateValue(XMPBuilder.init(forImageFile: url), forKey: image)
+        })
+        
         if self.galleryView == .all{
             if self.imageArray.count == 0{
                 let newArray = [UIImage]()
-                imageArray.append(newArray)
+                self.imageArray.append(newArray)
             }
-            imageArray[0].append(image)
+            self.imageArray[0].append(image)
         }else if self.galleryView == .date{
             var index = 0
             let formatter = DateFormatter()
             formatter.dateFormat = "MMMM dd, YYYY"
             let imageDate = formatter.string(from: data.creationDate!)
             while index < self.imageArray.count{
-                if  imageDate == keyArray[index]{
+                if  imageDate == self.keyArray[index]{
                     break
                 }
                 index += 1
             }
             if index == self.imageArray.count{
-                keyArray.append(imageDate)
+                self.keyArray.append(imageDate)
                 let newArray = [UIImage]()
-                imageArray.append(newArray)
+                self.imageArray.append(newArray)
             }
-            imageArray[index].append(image)
+            self.imageArray[index].append(image)
         }
     }
     
@@ -575,6 +602,21 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         imageView.transform = imageView.transform.scaledBy(x: scaleAdjustment, y: scaleAdjustment)
         self.viewType = .actualSize
         self.hideSelector()
+    }
+    
+    @objc func swipe(sender: UISwipeGestureRecognizer){
+        guard let view = sender.view as! UIImageView? else {return}
+        guard let activeImageIndex = firstIndex(array: self.activeImageArray, item: view.image!)else{return}
+        if sender.direction == .right && activeImageIndex > 0{
+            view.image = self.activeImageArray[activeImageIndex-1]
+        }else if sender.direction == .left && activeImageIndex < activeImageArray.count-1{
+            view.image = self.activeImageArray[activeImageIndex+1]
+        }
+        if self.viewType == .fit{
+            setViewToFit(viewOptionButton)
+        }else if self.viewType == .actualSize{
+            setViewToActualSize(viewOptionButton)
+        }
     }
     
     @objc func pinch(sender: UIPinchGestureRecognizer){
