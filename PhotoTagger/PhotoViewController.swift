@@ -99,7 +99,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         
         
         
-        let imageView = self.view.viewWithTag(13) as! UIImageView
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(pinch(sender:)))
         pinch.delegate = self
         imageView.addGestureRecognizer(pinch)
@@ -170,8 +169,8 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                     cell.backgroundColor = nil
                 }
                 
-                let imageView = cell.viewWithTag(1) as! UIImageView
-                imageView.image = imageArray[i][indexPath.row]
+                let cellImage = cell.viewWithTag(1) as! UIImageView
+                cellImage.image = imageArray[i][indexPath.row]
                 
                 let height = collectionView.collectionViewLayout.collectionViewContentSize.height
                 let oldConstraint = collectionView.constraints[0]
@@ -357,6 +356,15 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
             button.setTitle("☆", for: UIControlState.normal)
             i += 1
         }
+        if self.viewType == .gallery {
+            for image in self.activeImageArray{
+                guard let xmpBuilder = self.xmpBuilderForFile[image] else { continue }
+                xmpBuilder.setStarRating(rating: newStars)
+            }
+        }else{
+            guard let xmpBuilder = self.xmpBuilderForFile[imageView.image!] else {return}
+            xmpBuilder.setStarRating(rating: newStars)
+        }
     }
     @IBAction func starButtonPressed(_ sender: UIButton) {
         let starButtonSelectors = self.view.viewWithTag(11)
@@ -409,6 +417,16 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         let fileString = newColour + "_square"
         let colourImage = UIImage(named: fileString)?.withRenderingMode(.alwaysOriginal)
         colourPicker.setImage(colourImage, for: UIControlState.normal)
+        
+        if self.viewType == .gallery{
+            for image in self.activeImageArray{
+                guard let xmpBuilder = self.xmpBuilderForFile[image] else { continue }
+                xmpBuilder.setColourLabel(colour: newColour)
+            }
+        }else{
+            guard let xmpBuilder = self.xmpBuilderForFile[imageView.image!] else {return}
+            xmpBuilder.setColourLabel(colour: newColour)
+        }
     }
     
     
@@ -508,6 +526,15 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     }
     func addCopyright(){
         copyrightButton.setTitleColor(.lightGray, for: .normal)
+        if self.viewType == .gallery{
+            for image in self.activeImageArray{
+                guard let xmpBuilder = self.xmpBuilderForFile[image] else { continue }
+                xmpBuilder.setCopyright(copy: copyrightField.text)
+            }
+        }else{
+            guard let xmpBuilder = self.xmpBuilderForFile[imageView.image!] else{return}
+            xmpBuilder.setCopyright(copy: copyrightField.text)
+        }
         print("Apply Copyright")
     }
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
@@ -546,7 +573,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     }
     @IBAction func setViewToFit(_ sender: UIButton) {
         print("fit")
-        let imageView = self.view.viewWithTag(13) as! UIImageView
         let imageViewHolder = self.view.viewWithTag(20)
         imageView.transform = CGAffineTransform.identity
         if self.viewType == .gallery{
@@ -571,7 +597,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     }
     @IBAction func setViewToActualSize(_ sender: UIButton) {
         print("actual")
-        let imageView = self.view.viewWithTag(13) as! UIImageView
         let imageViewHolder = self.view.viewWithTag(20)
         imageView.transform = CGAffineTransform.identity
         if self.viewType == .gallery{
@@ -605,12 +630,11 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     }
     
     @objc func swipe(sender: UISwipeGestureRecognizer){
-        guard let view = sender.view as! UIImageView? else {return}
-        guard let activeImageIndex = firstIndex(array: self.activeImageArray, item: view.image!)else{return}
+        guard let activeImageIndex = firstIndex(array: self.activeImageArray, item: imageView.image!)else{return}
         if sender.direction == .right && activeImageIndex > 0{
-            view.image = self.activeImageArray[activeImageIndex-1]
+            imageView.image = self.activeImageArray[activeImageIndex-1]
         }else if sender.direction == .left && activeImageIndex < activeImageArray.count-1{
-            view.image = self.activeImageArray[activeImageIndex+1]
+            imageView.image = self.activeImageArray[activeImageIndex+1]
         }
         if self.viewType == .fit{
             setViewToFit(viewOptionButton)
@@ -621,29 +645,26 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     
     @objc func pinch(sender: UIPinchGestureRecognizer){
         if sender.state == .changed {
-            guard let view = sender.view as! UIImageView? else {return}
-            let pinchCenter = CGPoint(x: sender.location(in: view).x - view.bounds.midX,
-                                      y: sender.location(in: view).y - view.bounds.midY)
-            let transform = view.transform.translatedBy(x: pinchCenter.x, y: pinchCenter.y)
+            let pinchCenter = CGPoint(x: sender.location(in: imageView).x - imageView.bounds.midX,
+                                      y: sender.location(in: imageView).y - imageView.bounds.midY)
+            let transform = imageView.transform.translatedBy(x: pinchCenter.x, y: pinchCenter.y)
                 .scaledBy(x: sender.scale, y: sender.scale)
                 .translatedBy(x: -pinchCenter.x, y: -pinchCenter.y)
-            view.transform = transform
-            let translation = correctImageToBounds(imageView: view, translation: nil)
-            view.transform = view.transform.translatedBy(x: translation.x, y: translation.y)
+            imageView.transform = transform
+            let translation = correctImageToBounds(imageView: imageView, translation: nil)
+            imageView.transform = imageView.transform.translatedBy(x: translation.x, y: translation.y)
             sender.scale = 1
         }
     }
     @objc func pan(sender: UIPanGestureRecognizer){
         guard let containerView = self.view.viewWithTag(20) else {return}
         var translation = sender.translation(in: containerView)
-        let imageView = sender.view as! UIImageView
         
         translation = correctImageToBounds(imageView: imageView, translation: translation)
         
         imageView.transform = imageView.transform.translatedBy(x: translation.x, y: translation.y)
         
         sender.setTranslation(CGPoint.zero, in: containerView)
-
     }
     func correctImageToBounds(imageView: UIImageView, translation: CGPoint?) -> CGPoint{
         var finalTranslation : CGPoint
@@ -707,6 +728,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         }
     }
     
+    @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var allGalleryButton: UIButton!
     @IBOutlet weak var dateGalleryButton: UIButton!
     @IBOutlet weak var viewSelector: UIView!

@@ -19,10 +19,10 @@ class XMPBuilder {
     init(forImageFile photoURL:URL) {
         self.fileManager = FileManager.default
         
-        let photoURLString = photoURL.absoluteString
+        let photoURLString = photoURL.path
         let extensionRegex = try? NSRegularExpression(pattern: "\\.[^\\/]+$", options: .caseInsensitive)
         let metadataURLString = extensionRegex?.stringByReplacingMatches(in: photoURLString, options: .withoutAnchoringBounds, range: NSMakeRange(0, photoURLString.count), withTemplate: ".xmp")
-        self.xmpFilename = metadataURLString!
+        self.xmpFilename = metadataURLString!.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         print("metadata URL: ",metadataURLString!,"\n")
         
         if metadataURLString != nil && self.fileManager.fileExists(atPath: metadataURLString!){
@@ -61,7 +61,7 @@ class XMPBuilder {
             try self.fileManager.removeItem(atPath: self.xmpFilename)
             return true
         }catch{
-            print("Old Metadata file not removed or did not exist. XMP File not updated.")
+            print("Old Metadata file not removed or did not exist.")
             return false
         }
     }
@@ -97,30 +97,58 @@ class XMPBuilder {
             newFileContents += "    </rdf:Bag>\r\n   </dc:subject>\r\n"
         }
         newFileContents += "  </rdf:Description>\r\n </rdf:RDF>\r\n</x:xmpmeta>\r\n"
-        if removeOldFile(){
+        if !self.fileManager.fileExists(atPath: self.xmpFilename) || removeOldFile(){
             do{
                 let nsString : NSString = NSString.init(string: newFileContents)
                 try nsString.write(toFile: self.xmpFilename, atomically: true, encoding: String.Encoding.utf8.rawValue)
+                print("XMP File Updated at ",self.xmpFilename)
             }catch{
-                print("Failed to create new metadata file.")
+                print("Failed to create new metadata file ",self.xmpFilename)
+                print(error)
             }
+        }else{
+            print("XMP File not Updated")
         }
     }
     
     func setStarRating(rating: Int?){
-        self.starRating = rating
+        if rating != nil && rating! > 0{
+            self.starRating = rating
+        }else{
+            self.starRating = nil
+        }
         writeFile()
     }
     func setColourLabel(colour: String?){
-        self.colourLabel = colour
+        if colour != nil && colour! != "empty"{
+            self.colourLabel = colour
+        }else{
+            self.colourLabel = nil
+        }
         writeFile()
     }
     func setCopyright(copy: String?){
-        self.copyright = copy
+        if copy != nil && copy != ""{
+            self.copyright = copy
+        }else{
+            self.copyright = nil
+        }
         writeFile()
     }
-    func setKeywords(words: [String]?){
-        self.keywords = words
+    func setKeywords(words: String?){
+        self.keywords = nil
+        if words != nil && words != ""{
+            let subsequences = words!.split(separator: ",", omittingEmptySubsequences: true)
+            for tempWord in subsequences{
+                let finalWord = tempWord.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased()
+                if finalWord != ""{
+                    if self.keywords == nil{
+                        self.keywords = [String]()
+                    }
+                    self.keywords!.append(finalWord)
+                }
+            }
+        }
         writeFile()
     }
     

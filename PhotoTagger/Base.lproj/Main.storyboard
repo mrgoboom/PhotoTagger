@@ -446,6 +446,7 @@
                         <outlet property="copyrightButton" destination="owR-ft-PEB" id="OUA-Zy-C4o"/>
                         <outlet property="copyrightField" destination="PFN-Mm-evJ" id="7LX-cK-2hq"/>
                         <outlet property="dateGalleryButton" destination="rYM-E6-cVb" id="iLW-o8-JXf"/>
+                        <outlet property="imageView" destination="UjZ-lu-HxN" id="DHc-pp-w54"/>
                         <outlet property="viewOptionButton" destination="IAo-wd-FkF" id="AcH-ug-dDy"/>
                         <outlet property="viewSelector" destination="fYi-7M-CHp" id="bQW-Oy-jPV"/>
                     </connections>
