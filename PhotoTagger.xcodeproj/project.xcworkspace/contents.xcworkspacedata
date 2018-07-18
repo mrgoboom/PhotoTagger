@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:/Users/Elder/Documents/GitHub/PhotoTagger/de.xcodeproj">
+      location = "self:PhotoTagger.xcodeproj">
    </FileRef>
 </Workspace>
