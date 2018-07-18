@@ -334,6 +334,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         }
         self.activeSelector?.isHidden = true
         self.activeSelector = nil
+        controlBackgroundView.isHidden = true
     }
 
     
@@ -371,6 +372,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         if starButtonSelectors!.isHidden{
             self.hideSelector()
             starButtonSelectors!.isHidden = false
+            controlBackgroundView.isHidden = false
             self.activeSelector = starButtonSelectors
         }else{
             self.hideSelector()
@@ -402,6 +404,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         if colourButtons!.isHidden{
             self.hideSelector()
             colourButtons!.isHidden = false
+            controlBackgroundView.isHidden = false
             self.activeSelector = colourButtons
         }else{
             self.hideSelector()
@@ -462,6 +465,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         if keywordField!.isHidden{
             self.hideSelector()
             keywordField!.isHidden = false
+            controlBackgroundView.isHidden = false
             self.activeSelector = keywordField
         }else{
             self.hideSelector()
@@ -510,10 +514,12 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         if copyRightStack.isHidden{
             self.hideSelector()
             copyRightStack.isHidden = false
+            controlBackgroundView.isHidden = false
             self.activeSelector = copyRightStack
         }else{
             if copyrightButton.titleColor(for: .normal) == .darkText{
                 self.addCopyright()
+                self.hideSelector()
             }else{
                 self.hideSelector()
             }
@@ -554,6 +560,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         if viewOptionStack.isHidden{
             self.hideSelector()
             viewOptionStack.isHidden = false
+            controlBackgroundView.isHidden = false
             self.activeSelector = viewOptionStack
         }else{
             self.hideSelector()
@@ -735,12 +742,13 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     @IBOutlet weak var copyrightButton: UIButton!
     @IBOutlet weak var viewOptionButton: UIButton!
     @IBOutlet weak var copyrightField: UITextField!
+    @IBOutlet weak var controlBackgroundView: UIView!
 }
 
 class PhotoCell: UICollectionViewCell {
     var imageView = UIImageView()
     var bottomView = UIView()
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         
