@@ -27,21 +27,73 @@ class XMPBuilder {
         
         if metadataURLString != nil && self.fileManager.fileExists(atPath: metadataURLString!){
             do{
-                print("OH SHIT WE'RE ABOUT TO ENTER THE INCOMPLETE ZONE")
-                /*** THE CODE BELOW IS UNTESTED AND INCOMPLETE ***/
                 let fileString = try String.init(contentsOf: URL(fileURLWithPath: metadataURLString!))
                 let starRegex = try NSRegularExpression(pattern: "xmp:Rating=\"(\\d*)\"", options: .caseInsensitive)
                 let labelRegex = try NSRegularExpression(pattern: "xmp:Label=\"([a-z]*)\"", options: .caseInsensitive)
                 let copyRegex = try NSRegularExpression(pattern: "<dc:rights>\\s*<rdf:Alt>\\s*<rdf:li xml:lang=\"x-default\">(.*)<\\/rdf:li>\\s*<\\/rdf:Alt>\\s*<\\/dc:rights>", options: .caseInsensitive)
-                let keyRegex = try NSRegularExpression(pattern: "<dc:subject>\\s*<rdf:Bag>\\s*(?:<rdf:li>(.*)<\\/rdf:li>\\s*)+<\\/rdf:Bag>\\s*<\\/dc:subject>", options: .caseInsensitive)
+                let keyGroupRegex = try NSRegularExpression(pattern: "<dc:subject>\\s*<rdf:Bag>\\s*((?:<rdf:li>.*<\\/rdf:li>\\s*)+)<\\/rdf:Bag>\\s*<\\/dc:subject>", options: .caseInsensitive)
+                let keyRegex = try NSRegularExpression(pattern: "<rdf:li>(.*)<\\/rdf:li>", options: .caseInsensitive)
                 
                 let range = NSMakeRange(0, fileString.count)
-                let starMatch = starRegex.firstMatch(in: fileString, options: [], range: range)
-                let labelMatch = labelRegex.firstMatch(in: fileString, options: [], range: range)
-                let copyMatch = copyRegex.firstMatch(in: fileString, options: [], range: range)
-                let keyMatch = keyRegex.firstMatch(in: fileString, options: [], range: range)
-                
-            
+                if let starMatch = starRegex.firstMatch(in: fileString, options: [], range: range){
+                    if starMatch.numberOfRanges == 2{
+                        let oldRating = (fileString as NSString).substring(with: starMatch.range(at: 1))
+                        print("Found starRating: ",oldRating)
+                        self.starRating = Int(oldRating)
+                        if self.starRating == nil{
+                            print("Previous starRating was not a valid number")
+                        }
+                    }else{
+                        print("Weird error with number of match groups in starRating")
+                    }
+                }
+                if let labelMatch = labelRegex.firstMatch(in: fileString, options: [], range: range){
+                    if labelMatch.numberOfRanges == 2{
+                        self.colourLabel = (fileString as NSString).substring(with: labelMatch.range(at: 1))
+                        if self.colourLabel != nil{
+                            print("Found colourLabel: ",self.colourLabel!)
+                        }else{
+                            print("Found nil colourLabel.")
+                        }
+                    }else{
+                        print("Weird error with number of match groups in colourLabel")
+                    }
+                }
+                if let copyMatch = copyRegex.firstMatch(in: fileString, options: [], range: range){
+                    if copyMatch.numberOfRanges == 2{
+                        self.copyright = (fileString as NSString).substring(with: copyMatch.range(at: 1))
+                        if self.copyright != nil{
+                            print("Found copyright: ",self.copyright!)
+                        }else{
+                            print("Found nil copyright")
+                        }
+                    }else{
+                        print("Weird error with number of match groups in copyright")
+                    }
+                }
+                if let keyGroupMatch = keyGroupRegex.firstMatch(in: fileString, options: [], range: range){
+                    /*for index in 1..<keyGroupMatch.numberOfRanges{
+                        print("Range ",index," (",keyGroupMatch.range(at: index),"): ",(fileString as NSString).substring(with: keyGroupMatch.range(at: index)))
+                    }*/
+                    if keyGroupMatch.numberOfRanges == 2{
+                        let keyGroup = (fileString as NSString).substring(with: keyGroupMatch.range(at: 1))
+                        let keyMatches = keyRegex.matches(in: keyGroup, options: [], range: NSMakeRange(0, keyGroup.count))
+                        if keyMatches.count > 0{
+                            self.keywords = [String]()
+                            for keyMatch in keyMatches{
+                                if keyMatch.numberOfRanges == 2{
+                                    let newKeyword = (keyGroup as NSString).substring(with: keyMatch.range(at: 1))
+                                    self.keywords!.append(newKeyword)
+                                    print("Found keyword: ", newKeyword)
+                                }else{
+                                    print("Weird error with number of match groups in keyMatch.")
+                                }
+                            }
+                        }
+                    }else{
+                        print("Weird error with number of match groups for keyGroupMatch")
+                    }
+                }
             }catch{
                 print("Error extracting old metadata for file.")
                 starRating = nil

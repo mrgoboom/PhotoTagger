@@ -30,7 +30,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     var rating = 0
     var colour = ""
     let defaultKeywordText = "Type comma-separated keywords here"
-    var textViewText = ""
     var imageArray = [[UIImage]]()
     var keyArray = [String]()
     var collectionViewArray = [UICollectionView]()
@@ -472,9 +471,8 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         }
     }
     func applyPlaceHolder(_ textView: UITextView){
-        textView.text = defaultKeywordText
+        textView.text = self.defaultKeywordText
         textView.textColor = UIColor.lightGray
-        textViewText = defaultKeywordText
     }
     func applyTypedStyle(_ textView: UITextView){
         textView.textColor = UIColor.darkText
@@ -487,6 +485,25 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     func textViewDidBeginEditing(_ textView: UITextView) {
         if textView == self.view.viewWithTag(14) && textView.text == self.defaultKeywordText{
             moveCursortoStart(textView)
+        }
+    }
+    func textViewDidEndEditing(_ textView: UITextView) {
+        if textView == self.view.viewWithTag(14){
+            let textToSubmit : String?
+            if textView.text == self.defaultKeywordText{
+                textToSubmit = nil
+            }else{
+                textToSubmit = textView.text
+            }
+            if self.viewType == .gallery{
+                for image in self.activeImageArray{
+                    guard let xmpBuilder = self.xmpBuilderForFile[image] else{ continue }
+                    xmpBuilder.setKeywords(words: textToSubmit)
+                }
+            }else{
+                guard let xmpBuilder = self.xmpBuilderForFile[imageView.image!] else{ return }
+                xmpBuilder.setKeywords(words: textToSubmit)
+            }
         }
     }
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
@@ -551,6 +568,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     }
     @IBAction func applyCopyrightButton(_ sender: UIButton) {
         self.addCopyright()
+        self.hideSelector()
     }
     
     
