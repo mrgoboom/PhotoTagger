@@ -450,13 +450,19 @@
                     </view>
                     <connections>
                         <outlet property="allGalleryButton" destination="ziV-Pt-ms8" id="9dz-yt-Y9x"/>
-                        <outlet property="colourPicker" destination="YBY-PD-GjJ" id="vOP-3M-YC8"/>
+                        <outlet property="colourButtons" destination="Iml-kw-Cek" id="iwA-Wb-Xp9"/>
                         <outlet property="controlBackgroundView" destination="PNo-fk-t8T" id="H5q-ue-3nN"/>
                         <outlet property="copyrightButton" destination="owR-ft-PEB" id="OUA-Zy-C4o"/>
                         <outlet property="copyrightField" destination="PFN-Mm-evJ" id="7LX-cK-2hq"/>
+                        <outlet property="copyrightStack" destination="JVk-is-yro" id="TSU-vv-Qr0"/>
+                        <outlet property="customStackView" destination="Os7-xd-mps" id="aaz-yH-Wn3"/>
                         <outlet property="dateGalleryButton" destination="rYM-E6-cVb" id="iLW-o8-JXf"/>
                         <outlet property="imageView" destination="UjZ-lu-HxN" id="DHc-pp-w54"/>
+                        <outlet property="imageViewHolder" destination="EsR-ry-vme" id="tmU-j2-v3n"/>
+                        <outlet property="keywordField" destination="mV0-Vc-Hdd" id="LCe-14-IdG"/>
+                        <outlet property="starStack" destination="pVr-rd-Dr9" id="tW6-CG-r0t"/>
                         <outlet property="viewOptionButton" destination="IAo-wd-FkF" id="AcH-ug-dDy"/>
+                        <outlet property="viewOptionStack" destination="0tI-mf-nDX" id="Qgf-cG-ead"/>
                         <outlet property="viewSelector" destination="fYi-7M-CHp" id="bQW-Oy-jPV"/>
                     </connections>
                 </viewController>

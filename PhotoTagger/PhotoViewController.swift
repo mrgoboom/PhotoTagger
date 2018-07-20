@@ -39,9 +39,8 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        let myStackView = self.view.viewWithTag(1) as! UIStackView
         clearStackView()
-        self.view.sendSubview(toBack: myStackView)
+        self.view.sendSubview(toBack: customStackView)
         
         self.imageArray = [[UIImage]]()
         self.keyArray = [String]()
@@ -54,12 +53,12 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
             let width = 100 as CGFloat
             let height = 150 as CGFloat
             layout.itemSize = CGSize(width: width, height: height)
-            let collectionView = UICollectionView(frame: myStackView.bounds, collectionViewLayout: layout)
+            let collectionView = UICollectionView(frame: customStackView.bounds, collectionViewLayout: layout)
             collectionView.delegate = self
             collectionView.dataSource = self
             collectionView.register(PhotoCell.self, forCellWithReuseIdentifier: "0")
             collectionView.backgroundColor = .white
-            myStackView.addArrangedSubview(collectionView)
+            customStackView.addArrangedSubview(collectionView)
             
             
             collectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -74,18 +73,18 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                 label.text = keyArray[i]
                 label.textAlignment = .left
                 label.translatesAutoresizingMaskIntoConstraints = false
-                myStackView.addArrangedSubview(label)
+                customStackView.addArrangedSubview(label)
                 
                 let layout = UICollectionViewFlowLayout()
                 let width = 100 as CGFloat
                 let height = 150 as CGFloat
                 layout.itemSize = CGSize(width: width, height: height)
-                let newCollectionView = UICollectionView(frame: myStackView.bounds, collectionViewLayout: layout)
+                let newCollectionView = UICollectionView(frame: customStackView.bounds, collectionViewLayout: layout)
                 newCollectionView.delegate = self
                 newCollectionView.dataSource = self
                 newCollectionView.register(PhotoCell.self, forCellWithReuseIdentifier: String(i))
                 newCollectionView.backgroundColor = .white
-                myStackView.addArrangedSubview(newCollectionView)
+                customStackView.addArrangedSubview(newCollectionView)
                 
                 newCollectionView.translatesAutoresizingMaskIntoConstraints = false
                 NSLayoutConstraint.activate([
@@ -114,13 +113,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         imageView.addGestureRecognizer(swipeRight)
         
         self.setDataFrom(xmpBuilder: nil)
-        /*self.rating = 0
-        self.rateStars(stars: 0)
-        
-        self.colour = "empty"
-        self.pickColour(colour: "empty")
-        
-        applyPlaceHolder(self.view.viewWithTag(14) as! UITextView)*/
         
         createCopyrightAccessoryView(textField: copyrightField)
         
@@ -155,10 +147,10 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                 for index in 1..<xmpKeywords.count{
                     fieldText += ", "+xmpKeywords[index]
                 }
-                applyTypedStyle(self.view.viewWithTag(14) as! UITextView)
-                (self.view.viewWithTag(14) as! UITextView).text = fieldText
+                applyTypedStyle(keywordField)
+                keywordField.text = fieldText
             }else{
-                applyPlaceHolder(self.view.viewWithTag(14) as! UITextView)
+                applyPlaceHolder(keywordField)
             }
         }else if viewType == .gallery{
             if self.activeImageArray.count > 0{
@@ -238,20 +230,20 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                         for index in 1..<xmpKeywords!.count{
                             fieldText += ", "+xmpKeywords![index]
                         }
-                        applyTypedStyle(self.view.viewWithTag(14) as! UITextView)
-                        (self.view.viewWithTag(14) as! UITextView).text = fieldText
+                        applyTypedStyle(keywordField)
+                        keywordField.text = fieldText
                     }else{
-                        applyPlaceHolder(self.view.viewWithTag(14) as! UITextView)
+                        applyPlaceHolder(keywordField)
                     }
                 }else{
                     self.rateStars(stars: 0, force: true)
                     self.pickColour(colour: "empty", force: true)
-                    applyPlaceHolder(self.view.viewWithTag(14) as! UITextView)
+                    applyPlaceHolder(keywordField)
                 }
             }else{
                 self.rateStars(stars: 0, force: true)
                 self.pickColour(colour: "empty", force: true)
-                applyPlaceHolder(self.view.viewWithTag(14) as! UITextView)
+                applyPlaceHolder(keywordField)
             }
             
         }else{
@@ -453,11 +445,10 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     }
     
     func hideSelector(){
-        if self.activeSelector == self.view.viewWithTag(14){
-            let keyboardView = self.activeSelector
-            keyboardView?.endEditing(true)
+        if self.activeSelector == keywordField{
+            keywordField.endEditing(true)
         }
-        if self.activeSelector == self.view.viewWithTag(15){
+        if self.activeSelector == copyrightStack{
             copyrightField.endEditing(true)
         }
         self.activeSelector?.isHidden = true
@@ -473,16 +464,15 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
             newStars = 0
         }
         self.rating = newStars
-        let starView = self.view.viewWithTag(11)
         var i = 1
         while i <= newStars {
-            let button = starView?.viewWithTag(100+i) as! UIButton
+            let button = starStack?.viewWithTag(100+i) as! UIButton
             button.setTitle("★", for: .normal)
             button.setTitleColor(.darkText, for: .normal)
             i += 1
         }
         while i <= 5 {
-            let button = starView?.viewWithTag(100+i) as! UIButton
+            let button = starStack?.viewWithTag(100+i) as! UIButton
             button.setTitle("☆", for: .normal)
             button.setTitleColor(.darkText, for: .normal)
             i += 1
@@ -500,12 +490,11 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         }
     }
     @IBAction func starButtonPressed(_ sender: UIButton) {
-        let starButtonSelectors = self.view.viewWithTag(11)
-        if starButtonSelectors!.isHidden{
+        if starStack.isHidden{
             self.hideSelector()
-            starButtonSelectors!.isHidden = false
+            starStack.isHidden = false
             controlBackgroundView.isHidden = false
-            self.activeSelector = starButtonSelectors
+            self.activeSelector = starStack
         }else{
             self.hideSelector()
         }
@@ -532,7 +521,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     
     
     @IBAction func openColourPicker(_ sender: UIButton) {
-        let colourButtons = self.view.viewWithTag(12)
         if colourButtons!.isHidden{
             self.hideSelector()
             colourButtons!.isHidden = false
@@ -594,7 +582,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     
     
     @IBAction func showKeywordField(_ sender: UIButton) {
-        let keywordField = self.view.viewWithTag(14)
         if keywordField!.isHidden{
             self.hideSelector()
             keywordField!.isHidden = false
@@ -617,12 +604,12 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         }
     }
     func textViewDidBeginEditing(_ textView: UITextView) {
-        if textView == self.view.viewWithTag(14) && textView.text == self.defaultKeywordText{
+        if textView == keywordField && textView.text == self.defaultKeywordText{
             moveCursortoStart(textView)
         }
     }
     func textViewDidEndEditing(_ textView: UITextView) {
-        if textView == self.view.viewWithTag(14){
+        if textView == keywordField{
             let textToSubmit : String?
             if textView.text == self.defaultKeywordText{
                 textToSubmit = nil
@@ -661,12 +648,11 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     
     
     @objc func showCopyRightField(){
-        let copyRightStack = self.view.viewWithTag(15)!
-        if copyRightStack.isHidden{
+        if copyrightStack.isHidden{
             self.hideSelector()
-            copyRightStack.isHidden = false
+            copyrightStack.isHidden = false
             controlBackgroundView.isHidden = false
-            self.activeSelector = copyRightStack
+            self.activeSelector = copyrightStack
         }else{
             if copyrightButton.titleColor(for: .normal) == .darkText{
                 self.addCopyright()
@@ -708,7 +694,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     
     
     @IBAction func showViewOptions(_ sender: UIButton) {
-        let viewOptionStack = self.view.viewWithTag(16)!
         if viewOptionStack.isHidden{
             self.hideSelector()
             viewOptionStack.isHidden = false
@@ -720,7 +705,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     }
     @IBAction func setViewToGallery(_ sender: UIButton) {
         print("gallery")
-        self.view.viewWithTag(20)!.isHidden = true
+        imageViewHolder.isHidden = true
         let thumbImage = UIImage(named: "thumbs")?.withRenderingMode(.alwaysOriginal)
         viewOptionButton.setImage(thumbImage, for: .normal)
         if self.tempActive{
@@ -735,7 +720,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         print("fit")
         let oldType = self.viewType
         self.viewType = .fit
-        let imageViewHolder = self.view.viewWithTag(20)
         imageView.transform = CGAffineTransform.identity
         if oldType == .gallery{
             if self.activeImageArray.count == 0{
@@ -754,7 +738,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                 print("xmpBuilder not found for image.")
             }
             self.viewSelector.isHidden = true
-            imageViewHolder!.isHidden = false
+            imageViewHolder.isHidden = false
         }
         let fitImage = UIImage(named: "fit")?.withRenderingMode(.alwaysOriginal)
         viewOptionButton.setImage(fitImage, for: .normal)
@@ -765,7 +749,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         print("actual")
         let oldType = self.viewType
         self.viewType = .actualSize
-        let imageViewHolder = self.view.viewWithTag(20)
         imageView.transform = CGAffineTransform.identity
         if oldType == .gallery{
             if self.activeImageArray.count == 0{
@@ -781,7 +764,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                 print("xmpBuilder not found for image.")
             }
             self.viewSelector.isHidden = true
-            imageViewHolder!.isHidden = false
+            imageViewHolder.isHidden = false
         }
         let actualImage = UIImage(named: "100percent")?.withRenderingMode(.alwaysOriginal)
         viewOptionButton.setImage(actualImage, for: .normal)
@@ -839,14 +822,13 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         }
     }
     @objc func pan(sender: UIPanGestureRecognizer){
-        guard let containerView = self.view.viewWithTag(20) else {return}
-        var translation = sender.translation(in: containerView)
+        var translation = sender.translation(in: imageViewHolder)
         
         translation = correctImageToBounds(imageView: imageView, translation: translation)
         
         imageView.transform = imageView.transform.translatedBy(x: translation.x, y: translation.y)
         
-        sender.setTranslation(CGPoint.zero, in: containerView)
+        sender.setTranslation(CGPoint.zero, in: imageViewHolder)
     }
     func correctImageToBounds(imageView: UIImageView, translation: CGPoint?) -> CGPoint{
         var finalTranslation : CGPoint
@@ -904,12 +886,18 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         }
     }
     func clearStackView(){
-        let myStackView = self.view.viewWithTag(1) as! UIStackView
-        for v in myStackView.subviews {
+        for v in customStackView.subviews {
             v.removeFromSuperview()
         }
     }
     
+    @IBOutlet weak var imageViewHolder: UIView!
+    @IBOutlet weak var viewOptionStack: UIStackView!
+    @IBOutlet weak var starStack: UIStackView!
+    @IBOutlet weak var customStackView: UIStackView!
+    @IBOutlet weak var copyrightStack: UIStackView!
+    @IBOutlet weak var keywordField: UITextView!
+    @IBOutlet weak var colourButtons: UIStackView!
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var allGalleryButton: UIButton!
     @IBOutlet weak var dateGalleryButton: UIButton!
