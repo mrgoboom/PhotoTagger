@@ -101,11 +101,13 @@ class XMPBuilder {
                 keywords = nil
                 copyright = nil
             }
+        }else{
+            print("File did not exist or metadataURL nil.")
+            starRating = nil
+            colourLabel = nil
+            keywords = nil
+            copyright = nil
         }
-        starRating = nil
-        colourLabel = nil
-        keywords = nil
-        copyright = nil
     }
     
     func removeOldFile() -> Bool{

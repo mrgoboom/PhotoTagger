@@ -113,13 +113,14 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         swipeRight.delegate = self
         imageView.addGestureRecognizer(swipeRight)
         
-        self.rating = 0
+        self.setDataFrom(xmpBuilder: nil)
+        /*self.rating = 0
         self.rateStars(stars: 0)
         
         self.colour = "empty"
         self.pickColour(colour: "empty")
         
-        applyPlaceHolder(self.view.viewWithTag(14) as! UITextView)
+        applyPlaceHolder(self.view.viewWithTag(14) as! UITextView)*/
         
         createCopyrightAccessoryView(textField: copyrightField)
         
@@ -128,7 +129,134 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         tapGesture.numberOfTapsRequired = 1
         copyrightButton.addGestureRecognizer(tapGesture)
         copyrightButton.addGestureRecognizer(longGesture)
-        copyrightButton.setTitleColor(.darkText, for: .normal)
+        //copyrightButton.setTitleColor(.darkText, for: .normal)
+    }
+    
+    /* Use XMPBuilder is nil for viewType == .gallery
+    This will lead to different behaviour*/
+    func setDataFrom(xmpBuilder: XMPBuilder?){
+        if viewType != .gallery && xmpBuilder != nil{
+            if let xmpRating = xmpBuilder!.getStarRating(){
+                self.rateStars(stars: xmpRating, force: true)
+            }else{
+                self.rateStars(stars: 0, force: true)
+            }
+            if let xmpColour = xmpBuilder!.getColourLabel(){
+                self.pickColour(colour: xmpColour, force: true)
+            }else{
+                self.pickColour(colour: "empty", force: true)
+            }
+            if let xmpCopyright = xmpBuilder!.getCopyright(){
+                copyrightField.text = xmpCopyright
+                copyrightButton.setTitleColor(.lightGray, for: .normal)
+            }
+            if let xmpKeywords = xmpBuilder!.getKeywords(){
+                var fieldText = xmpKeywords[0]
+                for index in 1..<xmpKeywords.count{
+                    fieldText += ", "+xmpKeywords[index]
+                }
+                applyTypedStyle(self.view.viewWithTag(14) as! UITextView)
+                (self.view.viewWithTag(14) as! UITextView).text = fieldText
+            }else{
+                applyPlaceHolder(self.view.viewWithTag(14) as! UITextView)
+            }
+        }else if viewType == .gallery{
+            if self.activeImageArray.count > 0{
+                if let firstBuilder = self.xmpBuilderForFile[self.activeImageArray[0]]{
+                    var xmpRating = firstBuilder.getStarRating()
+                    var xmpRatingConsistent = true
+                    var xmpColour = firstBuilder.getColourLabel()
+                    var xmpColourConsistent = true
+                    let xmpCopyright = firstBuilder.getCopyright()
+                    var xmpCopyrightConsistent = true
+                    var xmpKeywords = firstBuilder.getKeywords()
+                    for index in 1..<self.activeImageArray.count{
+                        if let builder = self.xmpBuilderForFile[self.activeImageArray[index]]{
+                            let newRating = builder.getStarRating()
+                            if newRating != xmpRating{
+                                xmpRatingConsistent = false
+                                if newRating != nil && (xmpRating == nil || newRating! > xmpRating!){
+                                    xmpRating = newRating
+                                }
+                            }
+                            let newColour = builder.getColourLabel()
+                            if newColour != xmpColour{
+                                xmpColourConsistent = false
+                                xmpColour = nil
+                                /*** NEED TO FIND SOME WAY OF DEALING WITH COLOUR INCONSISTENCY ***/
+                            }
+                            let newCopyright = builder.getCopyright()
+                            if newCopyright != xmpCopyright{
+                                xmpCopyrightConsistent = false
+                                /*** NEED TO FIND SOME WAY OF DEALING WITH COPYRIGHT INCONSISTENCY ***/
+                            }
+                            if xmpKeywords != nil && xmpKeywords!.count > 0{
+                                if let newKeywords = builder.getKeywords(){
+                                    var tempArray = [Int]()
+                                    for index in 0..<xmpKeywords!.count{
+                                        if self.firstIndex(array: newKeywords, item: xmpKeywords![index]) == nil{
+                                            tempArray.append(index)
+                                        }
+                                    }
+                                    for index in tempArray{
+                                        xmpKeywords!.remove(at: index)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    let stars : Int
+                    if xmpRating == nil{
+                        stars = 0
+                    }else{
+                        stars = xmpRating!
+                    }
+                    self.rateStars(stars: stars, force: true)
+                    if !xmpRatingConsistent{
+                        for index in 101..<106{
+                            let starView = self.view.viewWithTag(index)
+                            if starView is UIButton{
+                                (starView as! UIButton).setTitleColor(.lightGray, for: .normal)
+                            }
+                        }
+                    }
+                    if xmpColourConsistent{
+                        if xmpColour == nil{
+                            self.pickColour(colour: "empty", force: true)
+                        }else{
+                            self.pickColour(colour: xmpColour!, force: true)
+                        }
+                    }else{
+                        /*** NEED TO FIND SOME WAY OF DEALING WITH COLOUR INCONSISTENCY ***/
+                        self.pickColour(colour: "empty", force: true)
+                    }
+                    if xmpCopyrightConsistent && xmpCopyright != nil{
+                        copyrightField.text = xmpCopyright
+                    }
+                    if xmpKeywords != nil && xmpKeywords!.count > 0{
+                        var fieldText = xmpKeywords![0]
+                        for index in 1..<xmpKeywords!.count{
+                            fieldText += ", "+xmpKeywords![index]
+                        }
+                        applyTypedStyle(self.view.viewWithTag(14) as! UITextView)
+                        (self.view.viewWithTag(14) as! UITextView).text = fieldText
+                    }else{
+                        applyPlaceHolder(self.view.viewWithTag(14) as! UITextView)
+                    }
+                }else{
+                    self.rateStars(stars: 0, force: true)
+                    self.pickColour(colour: "empty", force: true)
+                    applyPlaceHolder(self.view.viewWithTag(14) as! UITextView)
+                }
+            }else{
+                self.rateStars(stars: 0, force: true)
+                self.pickColour(colour: "empty", force: true)
+                applyPlaceHolder(self.view.viewWithTag(14) as! UITextView)
+            }
+            
+        }else{
+            print("nil xmpBuilder passed to setDataFrom(xmpBuilder:) for non gallery view")
+        }
     }
     
     override func didReceiveMemoryWarning() {
@@ -194,6 +322,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                 }else{
                     self.activeImageArray.append(imageArray[i][indexPath.row])
                     print("Adding to active array")
+                    self.setDataFrom(xmpBuilder: nil)
                     self.tempActive = false
                 }
                 collectionView.reloadData()
@@ -275,7 +404,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
             self.hideSelector()
         }
     }
-  
+    
     func createCopyrightAccessoryView(textField: UITextField){
         let copyrightButton = UIButton(type: .custom)
         copyrightButton.setTitle("©", for: .normal)
@@ -338,9 +467,9 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
 
     
     
-    func rateStars(stars: Int){
+    func rateStars(stars: Int, force: Bool){
         var newStars = stars
-        if stars == self.rating{
+        if stars == self.rating && !force{
             newStars = 0
         }
         self.rating = newStars
@@ -348,22 +477,26 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         var i = 1
         while i <= newStars {
             let button = starView?.viewWithTag(100+i) as! UIButton
-            button.setTitle("★", for: UIControlState.normal)
+            button.setTitle("★", for: .normal)
+            button.setTitleColor(.darkText, for: .normal)
             i += 1
         }
         while i <= 5 {
             let button = starView?.viewWithTag(100+i) as! UIButton
-            button.setTitle("☆", for: UIControlState.normal)
+            button.setTitle("☆", for: .normal)
+            button.setTitleColor(.darkText, for: .normal)
             i += 1
         }
-        if self.viewType == .gallery {
-            for image in self.activeImageArray{
-                guard let xmpBuilder = self.xmpBuilderForFile[image] else { continue }
+        if !force{
+            if self.viewType == .gallery {
+                for image in self.activeImageArray{
+                    guard let xmpBuilder = self.xmpBuilderForFile[image] else { continue }
+                    xmpBuilder.setStarRating(rating: newStars)
+                }
+            }else{
+                guard let xmpBuilder = self.xmpBuilderForFile[imageView.image!] else {return}
                 xmpBuilder.setStarRating(rating: newStars)
             }
-        }else{
-            guard let xmpBuilder = self.xmpBuilderForFile[imageView.image!] else {return}
-            xmpBuilder.setStarRating(rating: newStars)
         }
     }
     @IBAction func starButtonPressed(_ sender: UIButton) {
@@ -381,19 +514,19 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     
     
     @IBAction func rated1Star(_ sender: UIButton) {
-        self.rateStars(stars: 1)
+        self.rateStars(stars: 1, force: false)
     }
     @IBAction func rated2Star(_ sender: UIButton) {
-        self.rateStars(stars: 2)
+        self.rateStars(stars: 2, force: false)
     }
     @IBAction func rated3Star(_ sender: UIButton) {
-        self.rateStars(stars: 3)
+        self.rateStars(stars: 3, force: false)
     }
     @IBAction func rated4Star(_ sender: UIButton) {
-        self.rateStars(stars: 4)
+        self.rateStars(stars: 4, force: false)
     }
     @IBAction func rated5Star(_ sender: UIButton) {
-        self.rateStars(stars: 5)
+        self.rateStars(stars: 5, force: false)
     }
     
     
@@ -409,9 +542,9 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
             self.hideSelector()
         }
     }
-    func pickColour(colour: String) {
+    func pickColour(colour: String, force: Bool) {
         var newColour = colour
-        if colour == self.colour{
+        if colour == self.colour && !force{
             newColour = "empty"
         }
         
@@ -419,40 +552,41 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         let fileString = newColour + "_square"
         let colourImage = UIImage(named: fileString)?.withRenderingMode(.alwaysOriginal)
         colourPicker.setImage(colourImage, for: UIControlState.normal)
-        
-        if self.viewType == .gallery{
-            for image in self.activeImageArray{
-                guard let xmpBuilder = self.xmpBuilderForFile[image] else { continue }
+        if !force{
+            if self.viewType == .gallery{
+                for image in self.activeImageArray{
+                    guard let xmpBuilder = self.xmpBuilderForFile[image] else { continue }
+                    xmpBuilder.setColourLabel(colour: newColour)
+                }
+            }else{
+                guard let xmpBuilder = self.xmpBuilderForFile[imageView.image!] else {return}
                 xmpBuilder.setColourLabel(colour: newColour)
             }
-        }else{
-            guard let xmpBuilder = self.xmpBuilderForFile[imageView.image!] else {return}
-            xmpBuilder.setColourLabel(colour: newColour)
         }
     }
     
     
 
     @IBAction func pickRed(_ sender: UIButton) {
-        self.pickColour(colour: "red")
+        self.pickColour(colour: "red", force: false)
     }
     @IBAction func pickOrange(_ sender: UIButton) {
-        self.pickColour(colour: "orange")
+        self.pickColour(colour: "orange", force: false)
     }
     @IBAction func pickYellow(_ sender: UIButton) {
-        self.pickColour(colour: "yellow")
+        self.pickColour(colour: "yellow", force: false)
     }
     @IBAction func pickGreen(_ sender: UIButton) {
-        self.pickColour(colour: "green")
+        self.pickColour(colour: "green", force: false)
     }
     @IBAction func pickBlue(_ sender: UIButton) {
-        self.pickColour(colour: "blue")
+        self.pickColour(colour: "blue", force: false)
     }
     @IBAction func pickPink(_ sender: UIButton) {
-        self.pickColour(colour: "pink")
+        self.pickColour(colour: "pink", force: false)
     }
     @IBAction func pickPurple(_ sender: UIButton) {
-        self.pickColour(colour: "purple")
+        self.pickColour(colour: "purple", force: false)
     }
     
     @IBOutlet weak var colourPicker: UIButton!
@@ -595,12 +729,15 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         self.hideSelector()
         self.viewSelector.isHidden = false
         self.viewType = .gallery
+        self.setDataFrom(xmpBuilder: nil)
     }
     @IBAction func setViewToFit(_ sender: UIButton) {
         print("fit")
+        let oldType = self.viewType
+        self.viewType = .fit
         let imageViewHolder = self.view.viewWithTag(20)
         imageView.transform = CGAffineTransform.identity
-        if self.viewType == .gallery{
+        if oldType == .gallery{
             if self.activeImageArray.count == 0{
                 for i in 0..<self.imageArray.count{
                     self.activeImageArray.append(contentsOf: self.imageArray[i])
@@ -611,20 +748,26 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                 return
             }
             imageView.image = self.activeImageArray[0]
+            if let builder = xmpBuilderForFile[imageView.image!]{
+                self.setDataFrom(xmpBuilder: builder)
+            }else{
+                print("xmpBuilder not found for image.")
+            }
             self.viewSelector.isHidden = true
             imageViewHolder!.isHidden = false
         }
         let fitImage = UIImage(named: "fit")?.withRenderingMode(.alwaysOriginal)
         viewOptionButton.setImage(fitImage, for: .normal)
         imageView.contentMode = .scaleAspectFit
-        self.viewType = .fit
         self.hideSelector()
     }
     @IBAction func setViewToActualSize(_ sender: UIButton) {
         print("actual")
+        let oldType = self.viewType
+        self.viewType = .actualSize
         let imageViewHolder = self.view.viewWithTag(20)
         imageView.transform = CGAffineTransform.identity
-        if self.viewType == .gallery{
+        if oldType == .gallery{
             if self.activeImageArray.count == 0{
                 for i in 0..<self.imageArray.count{
                     self.activeImageArray.append(contentsOf: self.imageArray[i])
@@ -632,6 +775,11 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                 self.tempActive = true
             }
             imageView.image = self.activeImageArray[0]
+            if let builder = xmpBuilderForFile[imageView.image!]{
+                self.setDataFrom(xmpBuilder: builder)
+            }else{
+                print("xmpBuilder not found for image.")
+            }
             self.viewSelector.isHidden = true
             imageViewHolder!.isHidden = false
         }
@@ -650,7 +798,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         }
         print("scaleAdjustment: ", scaleAdjustment)
         imageView.transform = imageView.transform.scaledBy(x: scaleAdjustment, y: scaleAdjustment)
-        self.viewType = .actualSize
         self.hideSelector()
     }
     
@@ -658,8 +805,18 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         guard let activeImageIndex = firstIndex(array: self.activeImageArray, item: imageView.image!)else{return}
         if sender.direction == .right && activeImageIndex > 0{
             imageView.image = self.activeImageArray[activeImageIndex-1]
+            if let builder = xmpBuilderForFile[imageView.image!]{
+                self.setDataFrom(xmpBuilder: builder)
+            }else{
+                print("xmpBuilder not found for image.")
+            }
         }else if sender.direction == .left && activeImageIndex < activeImageArray.count-1{
             imageView.image = self.activeImageArray[activeImageIndex+1]
+            if let builder = xmpBuilderForFile[imageView.image!]{
+                self.setDataFrom(xmpBuilder: builder)
+            }else{
+                print("xmpBuilder not found for image.")
+            }
         }
         if self.viewType == .fit{
             setViewToFit(viewOptionButton)
