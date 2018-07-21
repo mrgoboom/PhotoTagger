@@ -103,14 +103,14 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         let pan = UIPanGestureRecognizer(target: self, action: #selector(pan(sender:)))
         pan.delegate = self
         imageView.addGestureRecognizer(pan)
-        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(swipe(sender:)))
+        /*let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(swipe(sender:)))
         swipeLeft.direction = .left
         swipeLeft.delegate = self
         imageView.addGestureRecognizer(swipeLeft)
         let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(swipe(sender:)))
         swipeRight.direction = .right
         swipeRight.delegate = self
-        imageView.addGestureRecognizer(swipeRight)
+        imageView.addGestureRecognizer(swipeRight)*/
         
         self.setDataFrom(xmpBuilder: nil)
         
@@ -255,13 +255,13 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         super.didReceiveMemoryWarning()
     }
     
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+    /*func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         if (gestureRecognizer is UISwipeGestureRecognizer && otherGestureRecognizer is UIPanGestureRecognizer) || (gestureRecognizer is UIPanGestureRecognizer && otherGestureRecognizer is UISwipeGestureRecognizer){
             return true
         }else{
             return false
         }
-    }
+    }*/
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         var count = 0
@@ -539,7 +539,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         self.colour = newColour
         let fileString = newColour + "_square"
         let colourImage = UIImage(named: fileString)?.withRenderingMode(.alwaysOriginal)
-        colourPicker.setImage(colourImage, for: UIControlState.normal)
+        colourPicker.setImage(colourImage, for: .normal)
         if !force{
             if self.viewType == .gallery{
                 for image in self.activeImageArray{
@@ -576,9 +576,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     @IBAction func pickPurple(_ sender: UIButton) {
         self.pickColour(colour: "purple", force: false)
     }
-    
-    @IBOutlet weak var colourPicker: UIButton!
-    
+        
     
     
     @IBAction func showKeywordField(_ sender: UIButton) {
@@ -705,7 +703,8 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     }
     @IBAction func setViewToGallery(_ sender: UIButton) {
         print("gallery")
-        imageViewHolder.isHidden = true
+        imageView.isHidden = true
+        customStackView.isHidden = false
         let thumbImage = UIImage(named: "thumbs")?.withRenderingMode(.alwaysOriginal)
         viewOptionButton.setImage(thumbImage, for: .normal)
         if self.tempActive{
@@ -738,7 +737,8 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                 print("xmpBuilder not found for image.")
             }
             self.viewSelector.isHidden = true
-            imageViewHolder.isHidden = false
+            imageView.isHidden = false
+            customStackView.isHidden = true
         }
         let fitImage = UIImage(named: "fit")?.withRenderingMode(.alwaysOriginal)
         viewOptionButton.setImage(fitImage, for: .normal)
@@ -764,7 +764,8 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                 print("xmpBuilder not found for image.")
             }
             self.viewSelector.isHidden = true
-            imageViewHolder.isHidden = false
+            imageView.isHidden = false
+            customStackView.isHidden = true
         }
         let actualImage = UIImage(named: "100percent")?.withRenderingMode(.alwaysOriginal)
         viewOptionButton.setImage(actualImage, for: .normal)
@@ -784,16 +785,18 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         self.hideSelector()
     }
     
-    @objc func swipe(sender: UISwipeGestureRecognizer){
+    func swipe(sender: UIPanGestureRecognizer){
         guard let activeImageIndex = firstIndex(array: self.activeImageArray, item: imageView.image!)else{return}
-        if sender.direction == .right && activeImageIndex > 0{
+        if sender.translation(in: imageViewHolder).x > 0 && activeImageIndex > 0{
+            self.canSwipe = false
             imageView.image = self.activeImageArray[activeImageIndex-1]
             if let builder = xmpBuilderForFile[imageView.image!]{
                 self.setDataFrom(xmpBuilder: builder)
             }else{
                 print("xmpBuilder not found for image.")
             }
-        }else if sender.direction == .left && activeImageIndex < activeImageArray.count-1{
+        }else if sender.translation(in: imageViewHolder).x < 0 && activeImageIndex < activeImageArray.count-1{
+            self.canSwipe = false
             imageView.image = self.activeImageArray[activeImageIndex+1]
             if let builder = xmpBuilderForFile[imageView.image!]{
                 self.setDataFrom(xmpBuilder: builder)
@@ -821,13 +824,20 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
             sender.scale = 1
         }
     }
+    var canSwipe = true
     @objc func pan(sender: UIPanGestureRecognizer){
         var translation = sender.translation(in: imageViewHolder)
-        
-        translation = correctImageToBounds(imageView: imageView, translation: translation)
-        
-        imageView.transform = imageView.transform.translatedBy(x: translation.x, y: translation.y)
-        
+        if abs(translation.x) > 50{
+            if canSwipe{
+                swipe(sender: sender)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(250), execute: {
+                self.canSwipe = true
+            })
+        }else{
+            translation = correctImageToBounds(imageView: imageView, translation: translation)
+            imageView.transform = imageView.transform.translatedBy(x: translation.x, y: translation.y)
+        }
         sender.setTranslation(CGPoint.zero, in: imageViewHolder)
     }
     func correctImageToBounds(imageView: UIImageView, translation: CGPoint?) -> CGPoint{
@@ -891,6 +901,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         }
     }
     
+    @IBOutlet weak var colourPicker: UIButton!
     @IBOutlet weak var imageViewHolder: UIView!
     @IBOutlet weak var viewOptionStack: UIStackView!
     @IBOutlet weak var starStack: UIStackView!
