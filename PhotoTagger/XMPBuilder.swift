@@ -121,48 +121,181 @@ class XMPBuilder {
     }
     
     func writeFile(){
-        //Start File as Header
-        if self.starRating == nil && self.colourLabel == nil && self.keywords == nil && self.copyright == nil{
-            _ = removeOldFile()
-            return
-        }
-        var newFileContents = "<x:xmpmeta xmlns:x=\"adobe:ns:meta/\" x:xmptk=\"Adobe XMP Core 5.6-c140 79.160451,\r\n\t2017/05/06-01:08:21        \">\r\n <rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\r\n  <rdf:Description rdf:about=\"\""
-        if self.starRating != nil || self.colourLabel != nil{
-            newFileContents += "\r\n    xmlns:xmp=\"http://ns.adobe.com/xap/1.0/\""
-        }
-        if self.keywords != nil || self.copyright != nil{
-            newFileContents += "\r\n    xmlns:dc=\"http://purl.org/dc/elements/1.1/\""
-        }
-        if self.colourLabel != nil{
-            newFileContents += "\r\n   xmp:Label=\""+self.colourLabel!+"\""
-        }
-        if self.starRating != nil{
-            newFileContents += "\r\n   xmp:Rating=\""+String(self.starRating!)+"\""
-        }
-        newFileContents += ">\r\n"
-        if self.copyright != nil {
-            newFileContents += "   <dc:rights>\r\n    <rdf:Alt>\r\n     <rdf:li xml:lang=\"x-default\">"+self.copyright!+"</rdf:li>\r\n    </rdf:Alt>\r\n   </dc:rights>\r\n"
-        }
-        if self.keywords != nil {
-            newFileContents += "   <dc:subject>\r\n    <rdf:Bag>\r\n"
-            for keyword in self.keywords!{
-                newFileContents += "     <rdf:li>"+keyword+"</rdf:li>\r\n"
+        let clean = false
+        //This version cleans the old file before creating a new one
+        if clean || !self.fileManager.fileExists(atPath: self.xmpFilename){
+            if self.starRating == nil && self.colourLabel == nil && self.keywords == nil && self.copyright == nil{
+                _ = removeOldFile()
+                return
             }
-            newFileContents += "    </rdf:Bag>\r\n   </dc:subject>\r\n"
-        }
-        newFileContents += "  </rdf:Description>\r\n </rdf:RDF>\r\n</x:xmpmeta>\r\n"
-        if !self.fileManager.fileExists(atPath: self.xmpFilename) || removeOldFile(){
-            do{
-                let nsString : NSString = NSString.init(string: newFileContents)
-                try nsString.write(toFile: self.xmpFilename, atomically: true, encoding: String.Encoding.utf8.rawValue)
-                print("XMP File Updated at ",self.xmpFilename)
-            }catch{
-                print("Failed to create new metadata file ",self.xmpFilename)
-                print(error)
+            var newFileContents = "<x:xmpmeta xmlns:x=\"adobe:ns:meta/\" x:xmptk=\"Adobe XMP Core 5.6-c140 79.160451,\r\n\t2017/05/06-01:08:21        \">\r\n <rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\r\n  <rdf:Description rdf:about=\"\""
+            if self.starRating != nil || self.colourLabel != nil{
+                newFileContents += "\r\n    xmlns:xmp=\"http://ns.adobe.com/xap/1.0/\""
+            }
+            if self.keywords != nil || self.copyright != nil{
+                newFileContents += "\r\n    xmlns:dc=\"http://purl.org/dc/elements/1.1/\""
+            }
+            if self.colourLabel != nil{
+                newFileContents += "\r\n   xmp:Label=\""+self.colourLabel!+"\""
+            }
+            if self.starRating != nil{
+                newFileContents += "\r\n   xmp:Rating=\""+String(self.starRating!)+"\""
+            }
+            newFileContents += ">\r\n"
+            if self.copyright != nil {
+                newFileContents += "   <dc:rights>\r\n    <rdf:Alt>\r\n     <rdf:li xml:lang=\"x-default\">"+self.copyright!+"</rdf:li>\r\n    </rdf:Alt>\r\n   </dc:rights>\r\n"
+            }
+            if self.keywords != nil {
+                newFileContents += "   <dc:subject>\r\n    <rdf:Bag>\r\n"
+                for keyword in self.keywords!{
+                    newFileContents += "     <rdf:li>"+keyword+"</rdf:li>\r\n"
+                }
+                newFileContents += "    </rdf:Bag>\r\n   </dc:subject>\r\n"
+            }
+            newFileContents += "  </rdf:Description>\r\n </rdf:RDF>\r\n</x:xmpmeta>\r\n"
+            if !self.fileManager.fileExists(atPath: self.xmpFilename) || removeOldFile(){
+                do{
+                    let nsString : NSString = NSString.init(string: newFileContents)
+                    try nsString.write(toFile: self.xmpFilename, atomically: true, encoding: String.Encoding.utf8.rawValue)
+                    print("XMP File Updated at ",self.xmpFilename)
+                }catch{
+                    print("Failed to create new metadata file ",self.xmpFilename)
+                    print(error)
+                }
+            }else{
+                print("XMP File not Updated")
             }
         }else{
-            print("XMP File not Updated")
+            do{
+                let fileContents = try NSMutableString.init(string: String.init(contentsOf: URL(fileURLWithPath: self.xmpFilename)))
+                let fileContentsRange = NSMakeRange(0, fileContents.length)
+                if self.starRating == nil && self.colourLabel == nil && !self.hasOtherXMPTags(area: (fileContents as String)){
+                    let xmpXMLNSTagRegex = try NSRegularExpression(pattern: "\\s*xmlns:xmp=\".*\"", options: .caseInsensitive)
+                    xmpXMLNSTagRegex.replaceMatches(in: fileContents, options: [], range: fileContentsRange, withTemplate: "")
+                }
+                if self.copyright == nil && self.keywords == nil && !self.hasOtherDCTags(area: (fileContents as String)){
+                    let dcXMLNSTagRegex = try NSRegularExpression(pattern: "\\s*xmlns:dc=\".*\"", options: .caseInsensitive)
+                    dcXMLNSTagRegex.replaceMatches(in: fileContents, options: [], range: fileContentsRange, withTemplate: "")
+                }
+                if self.starRating != nil{
+                    ensureXMPXMLNSTag(area: fileContents)
+                    let xmlnsTagRegex = try NSRegularExpression(pattern: "xmlns:\\w+=\".*\"([^\r\n>]*)", options: .caseInsensitive)
+                    var startIndex = 0
+                    for match in xmlnsTagRegex.matches(in: (fileContents as String), options: [], range: fileContentsRange){
+                        let newStartIndex = match.range(at: 1).location
+                        if newStartIndex > startIndex{
+                            startIndex = newStartIndex
+                        }
+                    }
+                    fileContents.replaceCharacters(in: NSMakeRange(startIndex, 0), with: ("\r\n   xmp:Rating=\""+String(self.starRating!)+"\""))
+                }else{
+                    let ratingRegex = try NSRegularExpression(pattern: "\\s*xmp:rating=\".*\"", options: .caseInsensitive)
+                    ratingRegex.replaceMatches(in: fileContents, options: [], range: fileContentsRange, withTemplate: "")
+                }
+                if self.colourLabel != nil{
+                    ensureXMPXMLNSTag(area: fileContents)
+                    let xmlnsTagRegex = try NSRegularExpression(pattern: "xmlns:\\w+=\".*\"([^\r\n>]*)", options: .caseInsensitive)
+                    var startIndex = 0
+                    for match in xmlnsTagRegex.matches(in: (fileContents as String), options: [], range: fileContentsRange){
+                        let newStartIndex = match.range(at: 1).location
+                        if newStartIndex > startIndex{
+                            startIndex = newStartIndex
+                        }
+                    }
+                    fileContents.replaceCharacters(in: NSMakeRange(startIndex, 0), with: "\r\n   xmp:Label=\""+self.colourLabel!+"\"")
+                }else{
+                    let labelRegex = try NSRegularExpression(pattern: "\\s*xmp:label=\".*\"", options: .caseInsensitive)
+                    labelRegex.replaceMatches(in: fileContents, options: [], range: fileContentsRange, withTemplate: "")
+                }
+                if self.copyright != nil{
+                    
+                }
+            }catch{
+                print("Failed to update file")
+                print(error)
+            }
         }
+    }
+    
+    func ensureDCXMLNSTag(area: NSMutableString){
+        let range = NSMakeRange(0, area.length)
+        do{
+            let dcXMLNSTagRegex = try NSRegularExpression(pattern: "xmlns:dc=\".*\"", options: .caseInsensitive)
+            if dcXMLNSTagRegex.firstMatch(in: (area as String), options: [], range: range) == nil{
+                let aboutRegex = try NSRegularExpression(pattern: "rdf:about=\".*\"([^\r\n>]*)", options: .caseInsensitive)
+                var startIndex = 0
+                if let aboutMatch = aboutRegex.firstMatch(in: (area as String), options: [], range: range){
+                    startIndex = aboutMatch.range(at: 1).location
+                }else{
+                    throw NSError(domain: "rdf:about found in XMP File", code: 100, userInfo: nil)
+                }
+                let xmpRegex = try NSRegularExpression(pattern: "xmlns:xmp=\".*\"([^\r\n>]*)", options: .caseInsensitive)
+                if let xmpMatch = xmpRegex.firstMatch(in: (area as String), options: [], range: range){
+                    startIndex = xmpMatch.range(at: 1).location
+                }
+                let tiffRegex = try NSRegularExpression(pattern: "xmlns:tiff=\".*\"([^\r\n>]*)", options: .caseInsensitive)
+                if let tiffMatch = tiffRegex.firstMatch(in: (area as String), options: [], range: range){
+                    startIndex = tiffMatch.range(at: 1).location
+                }
+                let exifRegex = try NSRegularExpression(pattern: "xmlns:exif=\".*\"([^\r\n^]*)", options: .caseInsensitive)
+                if let exifMatch = exifRegex.firstMatch(in: (area as String), options: [], range: range){
+                    startIndex = exifMatch.range(at: 1).location
+                }
+                area.replaceCharacters(in: NSMakeRange(startIndex, 0), with: "\r\n    xmlns:dc=\"http://purl.org/dc/elements/1.1/\"")
+            }
+        }catch{
+            print("Failed to ensure DC XMLNS Tag")
+        }
+    }
+    
+    func ensureXMPXMLNSTag(area: NSMutableString){
+        let range = NSMakeRange(0, area.length)
+        do {
+            let xmpXMLNSTagRegex = try NSRegularExpression(pattern: "xmlns:xmp=\".*\"", options: .caseInsensitive)
+            if xmpXMLNSTagRegex.firstMatch(in: (area as String), options: [], range: range) == nil{
+                let aboutRegex = try NSRegularExpression(pattern: "rdf:about=\".*\"([^\r\n>]*)", options: .caseInsensitive)
+                if let aboutMatch = aboutRegex.firstMatch(in: (area as String), options: [], range: range){
+                    let startIndex = aboutMatch.range(at: 1).location
+                    area.replaceCharacters(in: NSMakeRange(startIndex, 0), with: "\r\n    xmlns:xmp=\"http://ns.adobe.com/xap/1.0/\"")
+                }else{
+                    throw NSError(domain: "rdf:about found in XMP File", code: 100, userInfo: nil)
+                }
+            }
+        } catch {
+            print("Failed to ensure XMP XMLNS Tag")
+            print(error)
+        }
+    }
+    
+    func hasOtherDCTags(area: String) -> Bool{
+        do{
+            let dcTagRegex = try NSRegularExpression(pattern: "dc:(\\w+)", options: .caseInsensitive)
+            for match in dcTagRegex.matches(in: area, options: [], range: NSMakeRange(0, area.count)){
+                let tagType = (area as NSString).substring(with: match.range(at: 1))
+                if tagType.caseInsensitiveCompare("rights") != .orderedSame && tagType.caseInsensitiveCompare("subject") != .orderedSame{
+                    return true
+                }
+            }
+        }catch{
+            print(error)
+        }
+        return false
+    }
+    
+    func hasOtherXMPTags(area: String) -> Bool{
+        do{
+            let xmpTagRegex = try NSRegularExpression(pattern: "xmp:(\\w+)=\".*\"", options: .caseInsensitive)
+            let xmpTagMatches = xmpTagRegex.matches(in: area, options: [], range: NSMakeRange(0, area.count))
+            for match in xmpTagMatches{
+                let tagType = (area as NSString).substring(with: match.range(at: 1))
+                if tagType.caseInsensitiveCompare("rating") != .orderedSame && tagType.caseInsensitiveCompare("label") != .orderedSame{
+                    return true
+                }
+            }
+        }catch{
+            print(error)
+        }
+        return false
     }
     
     func setStarRating(rating: Int?){
@@ -219,3 +352,69 @@ class XMPBuilder {
         return self.keywords
     }
 }
+
+/*class XMPTag{
+    private var subTags: [XMPTag]
+    private let tag: String
+    private var rdfXMLNSComponents: [String : String]?
+    private var rdfOtherComponents: [String : String]?
+    
+    init?(withTag: String, isRDFDescription: Bool) {
+        self.subTags = [XMPTag]()
+        self.tag = withTag
+        if isRDFDescription{
+            do{
+                self.rdfXMLNSComponents = [String : String]()
+                self.rdfOtherComponents = [String : String]()
+                let descriptionXMLNSRegex = try NSRegularExpression(pattern: "(xmlns:\\w+)=\"(.*)\"", options: .caseInsensitive)
+                let descriptionTagRegex = try NSRegularExpression(pattern: "(\\w+:\\w+)=\"(.*)\"", options: .caseInsensitive)
+                let xmlnsMatches = descriptionXMLNSRegex.matches(in: withTag, options: [], range: NSMakeRange(0, withTag.count))
+                var otherMatches = descriptionTagRegex.matches(in: withTag, options: [], range: NSMakeRange(0, withTag.count))
+                for match in xmlnsMatches{
+                    if let indexToRemove = PhotoViewController.firstIndex(array: otherMatches, item: match){
+                        otherMatches.remove(at: indexToRemove)
+                    }
+                    let key = (withTag as NSString).substring(with: match.range(at: 1))
+                    let value = (withTag as NSString).substring(with: match.range(at: 2))
+                    self.rdfXMLNSComponents!.updateValue(value, forKey: key)
+                }
+                for match in otherMatches{
+                    let key = (withTag as NSString).substring(with: match.range(at: 1))
+                    let value = (withTag as NSString).substring(with: match.range(at: 2))
+                    self.rdfOtherComponents!.updateValue(value, forKey: key)
+                }
+            }catch{
+                print(error)
+                return nil
+            }
+        }
+    }
+    
+    func containsXMLNSTag(key: String) -> Bool{
+        if self.rdfXMLNSComponents != nil{
+            if self.rdfXMLNSComponents![key] != nil{
+                return true
+            }else{
+                return false
+            }
+        }else{
+            return false
+        }
+    }
+    
+    func setOtherComponent(key: String, value: String)->Bool{
+        if self.rdfOtherComponents != nil{
+            self.rdfOtherComponents!.updateValue(value, forKey: key)
+            return true
+        }
+        return false
+    }
+    
+    func setXMLNSComponent(key: String, value: String)-> Bool{
+        if self.rdfXMLNSComponents != nil{
+            self.rdfXMLNSComponents!.updateValue(value, forKey: key)
+            return true
+        }
+        return false
+    }
+}*/

@@ -121,7 +121,6 @@
                                         </constraints>
                                     </scrollView>
                                 </subviews>
-                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
                                     <constraint firstItem="N1m-NW-kbT" firstAttribute="top" secondItem="EsR-ry-vme" secondAttribute="top" id="Gir-jZ-fnP"/>
                                     <constraint firstAttribute="trailing" secondItem="N1m-NW-kbT" secondAttribute="trailing" id="OQZ-aU-Z4O"/>

@@ -103,14 +103,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         let pan = UIPanGestureRecognizer(target: self, action: #selector(pan(sender:)))
         pan.delegate = self
         imageView.addGestureRecognizer(pan)
-        /*let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(swipe(sender:)))
-        swipeLeft.direction = .left
-        swipeLeft.delegate = self
-        imageView.addGestureRecognizer(swipeLeft)
-        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(swipe(sender:)))
-        swipeRight.direction = .right
-        swipeRight.delegate = self
-        imageView.addGestureRecognizer(swipeRight)*/
         
         self.setDataFrom(xmpBuilder: nil)
         
@@ -121,7 +113,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         tapGesture.numberOfTapsRequired = 1
         copyrightButton.addGestureRecognizer(tapGesture)
         copyrightButton.addGestureRecognizer(longGesture)
-        //copyrightButton.setTitleColor(.darkText, for: .normal)
     }
     
     /* Use XMPBuilder is nil for viewType == .gallery
@@ -186,7 +177,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                                 if let newKeywords = builder.getKeywords(){
                                     var tempArray = [Int]()
                                     for index in 0..<xmpKeywords!.count{
-                                        if self.firstIndex(array: newKeywords, item: xmpKeywords![index]) == nil{
+                                        if PhotoViewController.firstIndex(array: newKeywords, item: xmpKeywords![index]) == nil{
                                             tempArray.append(index)
                                         }
                                     }
@@ -255,14 +246,6 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         super.didReceiveMemoryWarning()
     }
     
-    /*func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        if (gestureRecognizer is UISwipeGestureRecognizer && otherGestureRecognizer is UIPanGestureRecognizer) || (gestureRecognizer is UIPanGestureRecognizer && otherGestureRecognizer is UISwipeGestureRecognizer){
-            return true
-        }else{
-            return false
-        }
-    }*/
-    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         var count = 0
         
@@ -282,7 +265,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         for i in 0..<self.collectionViewArray.count{
             if collectionView == self.collectionViewArray[i]{
                 cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(i), for: indexPath)
-                if firstIndex(array: self.activeImageArray, item: self.imageArray[i][indexPath.row]) != nil{
+                if PhotoViewController.firstIndex(array: self.activeImageArray, item: self.imageArray[i][indexPath.row]) != nil{
                     cell.backgroundColor = .lightGray
                 }else{
                     cell.backgroundColor = nil
@@ -307,7 +290,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         for i in 0..<self.collectionViewArray.count{
             if collectionView == self.collectionViewArray[i]{
-                let index = firstIndex(array: self.activeImageArray, item: imageArray[i][indexPath.row])
+                let index = PhotoViewController.firstIndex(array: self.activeImageArray, item: imageArray[i][indexPath.row])
                 if index != nil{
                     self.activeImageArray.remove(at: index!)
                     print("Removing from active array")
@@ -322,7 +305,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         }
     }
     
-    func firstIndex<T: Equatable>(array: [T], item: T) -> Int?{
+    class func firstIndex<T: Equatable>(array: [T], item: T) -> Int?{
         for (index, value) in array.enumerated() {
             if value == item {
                 return index
@@ -346,8 +329,13 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         print(fetchResult)
         if fetchResult.count > 0 {
             for i in 0..<fetchResult.count{
-                imgManager.requestImage(for: fetchResult.object(at: i) as PHAsset, targetSize: PHImageManagerMaximumSize,contentMode: .aspectFit, options: requestOptions, resultHandler: { (image, error) in
-                    self.addImage(image: image!, data: fetchResult.object(at: i))
+                imgManager.requestImage(for: fetchResult.object(at: i) as PHAsset, targetSize: PHImageManagerMaximumSize,contentMode: .aspectFit, options: requestOptions, resultHandler: { (image, info) in
+                    if image != nil{
+                        self.addImage(image: image!, data: fetchResult.object(at: i))
+                    }else{
+                        let object = fetchResult.object(at: i)
+                        print("IMAGE NOT FOUND for ",object)
+                    }
                 })
             }
         }
@@ -786,7 +774,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     }
     
     func swipe(sender: UIPanGestureRecognizer){
-        guard let activeImageIndex = firstIndex(array: self.activeImageArray, item: imageView.image!)else{return}
+        guard let activeImageIndex = PhotoViewController.firstIndex(array: self.activeImageArray, item: imageView.image!)else{return}
         if sender.translation(in: imageViewHolder).x > 0 && activeImageIndex > 0{
             self.canSwipe = false
             imageView.image = self.activeImageArray[activeImageIndex-1]
