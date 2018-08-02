@@ -354,11 +354,15 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     }
     
     func addImage(image: UIImage, data: PHAsset){
-
         data.requestContentEditingInput(with: PHContentEditingInputRequestOptions(), completionHandler: {(input, _) in
             guard let url = input!.fullSizeImageURL else{ return }
             print("found image: ", url)
-            self.xmpBuilderForFile.updateValue(XMPBuilder.init(forImageFile: url), forKey: image)
+            if let xmpBuilder = XMPBuilder.init(forImageFile: url){
+                self.xmpBuilderForFile.updateValue(xmpBuilder, forKey: image)
+            }else{
+                print("Could not create XMPBuilder.")
+                return
+            }
         })
         
         if self.galleryView == .all{

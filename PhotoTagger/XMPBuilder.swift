@@ -14,20 +14,40 @@ class XMPBuilder {
     private var copyright: String?
     private var keywords: [String]?
     private var fileManager: FileManager
-    private var xmpFilename: String
+    private var xmpFile: URL
     
-    init(forImageFile photoURL:URL) {
+    init?(forImageFile photoURL:URL) {
         self.fileManager = FileManager.default
         
-        let photoURLString = photoURL.path
-        let extensionRegex = try? NSRegularExpression(pattern: "\\.[^\\/]+$", options: .caseInsensitive)
-        let metadataURLString = extensionRegex?.stringByReplacingMatches(in: photoURLString, options: .withoutAnchoringBounds, range: NSMakeRange(0, photoURLString.count), withTemplate: ".xmp")
-        self.xmpFilename = metadataURLString!.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-        print("metadata URL: ",metadataURLString!,"\n")
-        
-        if metadataURLString != nil && self.fileManager.fileExists(atPath: metadataURLString!){
+        let documentDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let photoFilename = photoURL.lastPathComponent
+        let xmpFilename : String
+        do{
+            let extensionRegex = try NSRegularExpression(pattern: "\\.\\w+$", options: .caseInsensitive)
+            xmpFilename = extensionRegex.stringByReplacingMatches(in: photoFilename, options: [], range: NSMakeRange(0, photoFilename.count), withTemplate: ".xmp")
+        }catch{
+            print("Regex error on filename. Should not have happened.")
+            print(error)
+            return nil
+        }
+        let photoDirectory = photoURL.deletingLastPathComponent().lastPathComponent
+        let storedPhotoDirectory = documentDirectory.appendingPathComponent(photoDirectory)
+        if !self.fileManager.fileExists(atPath: storedPhotoDirectory.absoluteString){
             do{
-                let fileString = try String.init(contentsOf: URL(fileURLWithPath: metadataURLString!))
+                try fileManager.createDirectory(at: storedPhotoDirectory, withIntermediateDirectories: true, attributes: nil)
+            }catch{
+                print("Failed to create directory ",storedPhotoDirectory)
+                print(error)
+            }
+        }
+        self.xmpFile = storedPhotoDirectory.appendingPathComponent(xmpFilename)
+        
+
+        print("metadata URL: ",self.xmpFile )
+        
+        if self.fileManager.fileExists(atPath: self.xmpFile.path){
+            do{
+                let fileString = try String.init(contentsOf: self.xmpFile)
                 let starRegex = try NSRegularExpression(pattern: "xmp:Rating=\"(\\d*)\"", options: .caseInsensitive)
                 let labelRegex = try NSRegularExpression(pattern: "xmp:Label=\"([a-z]*)\"", options: .caseInsensitive)
                 let copyRegex = try NSRegularExpression(pattern: "<dc:rights>\\s*<rdf:Alt>\\s*<rdf:li xml:lang=\"x-default\">(.*)<\\/rdf:li>\\s*<\\/rdf:Alt>\\s*<\\/dc:rights>", options: .caseInsensitive)
@@ -73,8 +93,8 @@ class XMPBuilder {
                 }
                 if let keyGroupMatch = keyGroupRegex.firstMatch(in: fileString, options: [], range: range){
                     /*for index in 1..<keyGroupMatch.numberOfRanges{
-                        print("Range ",index," (",keyGroupMatch.range(at: index),"): ",(fileString as NSString).substring(with: keyGroupMatch.range(at: index)))
-                    }*/
+                     print("Range ",index," (",keyGroupMatch.range(at: index),"): ",(fileString as NSString).substring(with: keyGroupMatch.range(at: index)))
+                     }*/
                     if keyGroupMatch.numberOfRanges == 2{
                         let keyGroup = (fileString as NSString).substring(with: keyGroupMatch.range(at: 1))
                         let keyMatches = keyRegex.matches(in: keyGroup, options: [], range: NSMakeRange(0, keyGroup.count))
@@ -102,7 +122,7 @@ class XMPBuilder {
                 copyright = nil
             }
         }else{
-            print("File did not exist or metadataURL nil.")
+            print("File did not exist")
             starRating = nil
             colourLabel = nil
             keywords = nil
@@ -112,7 +132,7 @@ class XMPBuilder {
     
     func removeOldFile() -> Bool{
         do{
-            try self.fileManager.removeItem(atPath: self.xmpFilename)
+            try self.fileManager.removeItem(at: self.xmpFile)
             return true
         }catch{
             print("Old Metadata file not removed or did not exist.")
@@ -151,13 +171,14 @@ class XMPBuilder {
             newFileContents += "    </rdf:Bag>\r\n   </dc:subject>\r\n"
         }
         newFileContents += "  </rdf:Description>\r\n </rdf:RDF>\r\n</x:xmpmeta>\r\n"
-        if !self.fileManager.fileExists(atPath: self.xmpFilename) || removeOldFile(){
+        if !self.fileManager.fileExists(atPath: self.xmpFile.path) || removeOldFile(){
             do{
                 let nsString : NSString = NSString.init(string: newFileContents)
-                try nsString.write(toFile: self.xmpFilename, atomically: true, encoding: String.Encoding.utf8.rawValue)
-                print("XMP File Updated at ",self.xmpFilename)
+                try nsString.write(to: self.xmpFile, atomically: false, encoding: String.Encoding.utf8.rawValue)
+                print("XMP File Updated at ",self.xmpFile)
+                print(self.fileManager.fileExists(atPath: self.xmpFile.path))
             }catch{
-                print("Failed to create new metadata file ",self.xmpFilename)
+                print("Failed to create new metadata file ",self.xmpFile)
                 print(error)
             }
         }else{
