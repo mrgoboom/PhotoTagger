@@ -301,6 +301,7 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
                 let index = PhotoViewController.firstIndex(array: self.activeImageArray, item: imageArray[i][indexPath.row])
                 if index != nil{
                     self.activeImageArray.remove(at: index!)
+                    self.setDataFrom(xmpBuilder: nil)
                     print("Removing from active array")
                 }else{
                     self.activeImageArray.append(imageArray[i][indexPath.row])
