@@ -176,7 +176,6 @@ class XMPBuilder {
                 let nsString : NSString = NSString.init(string: newFileContents)
                 try nsString.write(to: self.xmpFile, atomically: false, encoding: String.Encoding.utf8.rawValue)
                 print("XMP File Updated at ",self.xmpFile)
-                print(self.fileManager.fileExists(atPath: self.xmpFile.path))
             }catch{
                 print("Failed to create new metadata file ",self.xmpFile)
                 print(error)
@@ -215,12 +214,32 @@ class XMPBuilder {
         if words != nil && words != ""{
             let subsequences = words!.split(separator: ",", omittingEmptySubsequences: true)
             for tempWord in subsequences{
-                let finalWord = tempWord.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).lowercased()
+                let finalWord = tempWord.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
                 if finalWord != ""{
                     if self.keywords == nil{
                         self.keywords = [String]()
                     }
-                    self.keywords!.append(finalWord)
+                    if PhotoViewController.firstIndex(array: self.keywords!, item: finalWord) == nil{
+                        self.keywords!.append(finalWord)
+                    }
+                }
+            }
+        }
+        writeFile()
+    }
+    
+    func addKeywords(words: String?){
+        if words != nil && words != ""{
+            let subsequences = words!.split(separator: ",", omittingEmptySubsequences: true)
+            for tempWord in subsequences{
+                let finalWord = tempWord.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                if finalWord != ""{
+                    if self.keywords == nil{
+                        self.keywords = [String]()
+                    }
+                    if PhotoViewController.firstIndex(array: self.keywords!, item: finalWord) == nil{
+                        self.keywords!.append(finalWord)
+                    }
                 }
             }
         }

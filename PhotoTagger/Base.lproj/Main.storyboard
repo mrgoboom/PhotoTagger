@@ -136,7 +136,7 @@
                             <stackView hidden="YES" opaque="NO" tag="15" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="JVk-is-yro">
                                 <rect key="frame" x="84" y="299" width="488" height="30"/>
                                 <subviews>
-                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Stuff" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="PFN-Mm-evJ">
+                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Add your copyright message here" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="PFN-Mm-evJ">
                                         <rect key="frame" x="0.0" y="0.0" width="448" height="30"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="448" id="OYU-dR-ejQ"/>
