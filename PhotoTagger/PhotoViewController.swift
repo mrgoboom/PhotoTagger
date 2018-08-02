@@ -435,14 +435,22 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
     }
     @objc func addCopyrightSymbol(sender: UIButton!) {
         if copyrightField.text != nil && copyrightField.text != ""{
-            copyrightField.text = copyrightField.text! + "©"
+            if let selectedRange = copyrightField.selectedTextRange {
+                copyrightField.replace(selectedRange, withText: "©")
+            }else{
+                copyrightField.text = copyrightField.text! + "©"
+            }
         }else{
             copyrightField.text = "©"
         }
     }
     @objc func addRegisteredSymbol(sender: UIButton!) {
         if copyrightField.text != nil && copyrightField.text != ""{
-            copyrightField.text = copyrightField.text! + "®"
+            if let selectedRange = copyrightField.selectedTextRange {
+                copyrightField.replace(selectedRange, withText: "®")
+            }else{
+                copyrightField.text = copyrightField.text! + "®"
+            }
         }else{
             copyrightField.text = "®"
         }
