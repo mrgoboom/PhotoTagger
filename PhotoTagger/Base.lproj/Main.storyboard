@@ -95,7 +95,7 @@
                             <view tag="20" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="EsR-ry-vme">
                                 <rect key="frame" x="84" y="20" width="1282" height="1004"/>
                                 <subviews>
-                                    <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" tag="21" contentMode="center" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="N1m-NW-kbT">
+                                    <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" tag="21" contentMode="center" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="N1m-NW-kbT">
                                         <rect key="frame" x="0.0" y="0.0" width="1282" height="1004"/>
                                         <subviews>
                                             <stackView opaque="NO" tag="1" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" translatesAutoresizingMaskIntoConstraints="NO" id="Os7-xd-mps">

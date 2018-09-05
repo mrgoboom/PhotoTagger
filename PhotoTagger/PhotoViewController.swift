@@ -338,8 +338,13 @@ class PhotoViewController : UIViewController, UITextViewDelegate, UITextFieldDel
         print(fetchResult)
         if fetchResult.count > 0 {
             for i in 0..<fetchResult.count{
-                imgManager.requestImage(for: fetchResult.object(at: i) as PHAsset, targetSize: PHImageManagerMaximumSize,contentMode: .aspectFit, options: requestOptions, resultHandler: { (image, error) in
-                    self.addImage(image: image!, data: fetchResult.object(at: i))
+                imgManager.requestImage(for: fetchResult.object(at: i) as PHAsset, targetSize: PHImageManagerMaximumSize, contentMode: .aspectFit, options: requestOptions, resultHandler: { (image, error) in
+                    if image != nil{
+                        self.addImage(image: image!, data: fetchResult.object(at: i))
+                    }else{
+                        print("Error: Image is nil.")
+                        print(fetchResult.object(at: i))
+                    }
                 })
             }
         }
